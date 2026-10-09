@@ -2,24 +2,21 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
+import { AuthProvider } from '../src/auth/AuthContext';
 import { DataState } from '../src/components/DataState';
 import { StatusBadge } from '../src/components/StatusBadge';
+import { LoginPage } from '../src/pages/LoginPage';
+import { api } from '../src/services/api';
+import { ApiError } from '../src/services/apiClient';
 
-vi.mock('../src/services/api', () => ({
-  api: {
-    me: vi.fn(),
-    login: vi.fn(async () => {
-      const { ApiError } = await import('../src/services/apiClient');
-      throw new ApiError(401, 'Invalid credentials');
-    }),
-  },
-}));
+vi.mock('../src/services/api', () => ({ api: { me: vi.fn(), login: vi.fn() } }));
+
+const renderLogin = () => render(<MemoryRouter><AuthProvider><LoginPage /></AuthProvider></MemoryRouter>);
 
 describe('StatusBadge', () => {
   it('shows the Spanish label and the tone for the status', () => {
     render(<StatusBadge value="CRITICAL" />);
-    const badge = screen.getByText('Crítico');
-    expect(badge).toHaveClass('badge--bad');
+    expect(screen.getByText('Crítico')).toHaveClass('badge--bad');
   });
 });
 
@@ -36,15 +33,56 @@ describe('DataState', () => {
 });
 
 describe('LoginPage', () => {
-  it('shows an error when the backend rejects the credentials', async () => {
-    const { AuthProvider } = await import('../src/auth/AuthContext');
-    const { LoginPage } = await import('../src/pages/LoginPage');
-    render(<MemoryRouter><AuthProvider><LoginPage /></AuthProvider></MemoryRouter>);
+  it('limits username to 20 and password to 12 characters', async () => {
+    renderLogin();
+    await userEvent.type(screen.getByLabelText('Usuario'), 'a'.repeat(50));
+    await userEvent.type(screen.getByLabelText('Contraseña'), 'b'.repeat(50));
+
+    expect(screen.getByLabelText('Usuario')).toHaveValue('a'.repeat(20));
+    expect(screen.getByLabelText('Contraseña')).toHaveValue('b'.repeat(12));
+  });
+
+  it('eye button shows and hides the password', async () => {
+    renderLogin();
+    const password = screen.getByLabelText('Contraseña');
+    expect(password).toHaveAttribute('type', 'password');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Mostrar contraseña' }));
+    expect(password).toHaveAttribute('type', 'text');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Ocultar contraseña' }));
+    expect(password).toHaveAttribute('type', 'password');
+  });
+
+  it('always answers a rejected login with the same generic message', async () => {
+    vi.mocked(api.login).mockImplementation(async () => {
+      throw new ApiError(400, 'Validation failed: username is too long');
+    });
+    renderLogin();
 
     await userEvent.type(screen.getByLabelText('Usuario'), 'admin');
-    await userEvent.type(screen.getByLabelText('Contraseña'), 'wrong');
+    await userEvent.type(screen.getByLabelText('Contraseña'), 'Wrong#2026a');
     await userEvent.click(screen.getByRole('button', { name: 'Ingresar' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Invalid credentials');
+    expect(await screen.findByRole('alert')).toHaveTextContent(/^Datos incorrectos\.$/);
+    expect(screen.getByLabelText('Contraseña')).toHaveValue('');
+  });
+
+  it('explains when too many attempts were made', async () => {
+    vi.mocked(api.login).mockImplementation(async () => {
+      throw new ApiError(429, 'Demasiados intentos fallidos. Espera unos minutos e inténtalo de nuevo.');
+    });
+    renderLogin();
+
+    await userEvent.type(screen.getByLabelText('Usuario'), 'admin');
+    await userEvent.type(screen.getByLabelText('Contraseña'), 'Wrong#2026a');
+    await userEvent.click(screen.getByRole('button', { name: 'Ingresar' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Demasiados intentos');
+  });
+
+  it('offers no self-registration', () => {
+    renderLogin();
+    expect(screen.queryByText(/crear cuenta/i)).not.toBeInTheDocument();
   });
 });
