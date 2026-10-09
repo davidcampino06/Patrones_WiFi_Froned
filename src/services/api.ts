@@ -1,8 +1,7 @@
 import { apiClient } from './apiClient';
 import type {
-  ActivityEntry, AiPrediction, Alert, AlertStatus, AnalysisResult, AnalysisType, AuthResponse,
-  DashboardSummary, DataSourceMetric, Device, Measurement, Network, NetworkReport, ProtocolStatistic,
-  Strategy, TrafficSession, User, Zone,
+  AiPrediction, Alert, AlertStatus, AnalysisResult, AnalysisType, AuthResponse, DashboardSummary, Device,
+  Measurement, Network, NetworkReport, ProtocolStatistic, Role, Strategy, TrafficSession, User, Zone,
 } from '../types';
 
 export interface NetworkInput {
@@ -18,13 +17,15 @@ export interface NetworkInput {
 export const api = {
   login: (username: string, password: string) =>
     apiClient.post<AuthResponse>('/api/auth/login', { username, password }),
-  register: (username: string, email: string, password: string) =>
-    apiClient.post<User>('/api/auth/register', { username, email, password }),
   me: () => apiClient.get<User>('/api/auth/me'),
 
+  users: () => apiClient.get<User[]>('/api/users'),
+  createUser: (username: string, password: string, role: Role) =>
+    apiClient.post<User>('/api/users', { username, password, role }),
+  changeUserRole: (id: number, role: Role) => apiClient.patch<User>(`/api/users/${id}/role`, { role }),
+  deleteUser: (id: number) => apiClient.delete(`/api/users/${id}`),
+
   dashboard: () => apiClient.get<DashboardSummary>('/api/dashboard/summary'),
-  dataSourceMetrics: () => apiClient.get<DataSourceMetric[]>('/api/observability/data-sources'),
-  activity: () => apiClient.get<ActivityEntry[]>('/api/observability/activity'),
 
   zones: () => apiClient.get<Zone[]>('/api/zones'),
   networks: () => apiClient.get<Network[]>('/api/networks'),

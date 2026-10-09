@@ -9,7 +9,6 @@ export type AlertStatus = 'OPEN' | 'ACKNOWLEDGED' | 'RESOLVED';
 export interface User {
   id: number;
   username: string;
-  email: string;
   role: Role;
 }
 
@@ -96,6 +95,7 @@ export interface AiPrediction {
   severity: AiSeverity;
   message: string;
   recommendation: string | null;
+  recommendationSource: 'RULES' | 'CLAUDE';
   modelVersion: string;
   simulatedData: boolean;
   createdAt: string;
@@ -142,22 +142,6 @@ export interface DashboardSummary {
   averageLatencyLastHourMs: number | null;
   recentAlerts: Alert[];
   recentAnomalies: AiPrediction[];
-}
-
-export interface DataSourceMetric {
-  type: DataSourceType;
-  successes: number;
-  failures: number;
-  averageMillis: number;
-  lastCallAt: string | null;
-}
-
-export interface ActivityEntry {
-  type: string;
-  networkId: number;
-  ssid: string;
-  description: string;
-  occurredAt: string;
 }
 
 export interface MetricSummary {

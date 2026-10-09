@@ -7,6 +7,7 @@ export class ApiError extends Error {
     public readonly status: number,
     message: string,
     public readonly fieldErrors: Record<string, string> = {},
+    public readonly errors: string[] = [],
   ) {
     super(message);
   }
@@ -60,13 +61,19 @@ async function request<T>(method: string, path: string, body?: unknown, query?: 
 async function toApiError(response: Response): Promise<ApiError> {
   const problem = await response.json().catch(() => ({}));
   const message = problem.detail ?? defaultMessage(response.status);
-  return new ApiError(response.status, message, problem.errors ?? {});
+  const errors = problem.errors ?? {};
+  return Array.isArray(errors)
+    ? new ApiError(response.status, message, {}, errors)
+    : new ApiError(response.status, message, errors, Object.values(errors));
 }
 
 function defaultMessage(status: number): string {
   if (status === 401) return 'Tu sesión no es válida. Inicia sesión de nuevo.';
   if (status === 403) return 'Tu rol no tiene permiso para esta acción.';
-  return `El backend respondió con el código ${status}.`;
+  if (status === 413) return 'La solicitud es demasiado grande.';
+  if (status === 429) return 'Demasiados intentos. Espera unos minutos.';
+  if (status >= 500) return 'Ocurrió un error en el servidor. Intenta de nuevo.';
+  return 'No se pudo completar la solicitud.';
 }
 
 export const apiClient = {
