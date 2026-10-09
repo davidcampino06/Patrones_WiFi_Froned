@@ -101,11 +101,11 @@ function CreateUserForm({ onCreated }: { onCreated: () => void }) {
   return (
     <form onSubmit={submit} noValidate>
       <div className="field">
-        <label htmlFor="new-username">Usuario</label>
+        <label htmlFor="new-username">Usuario o correo</label>
         <input id="new-username" value={username} maxLength={USERNAME_MAX} autoComplete="off" spellCheck={false}
                aria-describedby="username-help" onChange={(e) => setUsername(e.target.value.slice(0, USERNAME_MAX))} />
         <small id="username-help" className={username && !usernameValid ? 'field__error' : 'muted'}>
-          De 3 a {USERNAME_MAX} caracteres: letras, números, punto, guion o guion bajo.
+          De 3 a {USERNAME_MAX} caracteres: un correo o un nombre con letras, números, punto, guion o guion bajo.
         </small>
       </div>
       <PasswordInput label="Contraseña" value={password} onChange={setPassword} autoComplete="new-password"

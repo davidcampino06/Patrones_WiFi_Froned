@@ -21,9 +21,11 @@ describe('password rules', () => {
     expect(PASSWORD_RULES.map((r) => r.label)).toContain('Al menos una letra mayúscula');
   });
 
-  it('usernames are 3 to 20 safe characters', () => {
+  it('usernames are a safe name or an email of 3 to 40 characters', () => {
     expect(USERNAME_PATTERN.test('jaider.ch')).toBe(true);
-    expect(USERNAME_PATTERN.test('a'.repeat(21))).toBe(false);
+    expect(USERNAME_PATTERN.test('jaider.chindoy@campusucc.edu.co')).toBe(true);
+    expect(USERNAME_PATTERN.test('a'.repeat(41))).toBe(false);
+    expect(USERNAME_PATTERN.test('a@b@c.com')).toBe(false);
     expect(USERNAME_PATTERN.test('<img src=x>')).toBe(false);
   });
 });
