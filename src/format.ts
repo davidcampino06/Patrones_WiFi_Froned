@@ -24,6 +24,6 @@ export const statusLabel: Record<string, string> = {
   NORMAL: 'Normal', WARNING: 'Advertencia', CRITICAL: 'Crítico',
   INFO: 'Información', OPEN: 'Abierta', ACKNOWLEDGED: 'Reconocida', RESOLVED: 'Resuelta',
   NONE: 'Sin anomalía', LOW: 'Baja', MEDIUM: 'Media', HIGH: 'Alta',
-  THRESHOLD: 'Umbrales', STATISTICAL: 'Estadístico', ANOMALY_DETECTION: 'IA · Isolation Forest',
+  THRESHOLD: 'Umbrales', STATISTICAL: 'Estadístico', ANOMALY_DETECTION: 'Inteligencia artificial',
   SIMULATION: 'Simulación', ROUTER_API: 'API de router', SNMP: 'SNMP', SYSTEM: 'Sistema', TRAFFIC_CAPTURE: 'Captura de tráfico',
 };

@@ -11,15 +11,11 @@ const ORDER: NetworkStatus[] = ['NORMAL', 'WARNING', 'CRITICAL'];
 
 export function DashboardPage() {
   const summary = useApi(api.dashboard);
-  const sources = useApi(api.dataSourceMetrics);
-  const activity = useApi(api.activity);
-
-  const refresh = () => [summary, sources, activity].forEach((s) => s.reload());
 
   return (
     <>
       <PageHeader title="Panel" description="Estado general de las redes monitoreadas."
-                  actions={<button className="button button--quiet" onClick={refresh}>Actualizar</button>} />
+                  actions={<button className="button button--quiet" onClick={summary.reload}>Actualizar</button>} />
       <DataState {...summary}>{(data) => <Overview data={data} />}</DataState>
 
       <div className="grid-2">
@@ -63,43 +59,6 @@ export function DashboardPage() {
         </section>
       </div>
 
-      <div className="grid-2">
-        <section className="panel">
-          <h2>Fuentes de datos</h2>
-          <p className="muted">Métricas registradas por el decorador de métricas en cada recolección.</p>
-          <DataState {...sources} empty="Todavía no se ha recolectado ninguna medición desde el arranque del backend.">
-            {(rows) => (
-              <table className="table">
-                <thead><tr><th>Fuente</th><th>Éxitos</th><th>Fallos</th><th>Tiempo medio</th></tr></thead>
-                <tbody>
-                  {rows.map((r) => (
-                    <tr key={r.type}>
-                      <td>{statusLabel[r.type]}</td><td className="num">{r.successes}</td>
-                      <td className="num">{r.failures}</td><td className="num">{formatNumber(r.averageMillis, 2, ' ms')}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </DataState>
-        </section>
-
-        <section className="panel">
-          <h2>Actividad</h2>
-          <DataState {...activity} empty="Sin eventos desde el arranque del backend.">
-            {(rows) => (
-              <ul className="list list--compact">
-                {rows.slice(0, 12).map((e, i) => (
-                  <li key={`${e.occurredAt}-${i}`}>
-                    <time>{formatDateTime(e.occurredAt)}</time>
-                    <span className="list__main"><strong>{e.ssid}</strong> {e.description}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </DataState>
-        </section>
-      </div>
     </>
   );
 }
