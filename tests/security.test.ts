@@ -1,0 +1,29 @@
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
+
+function sourceFiles(dir: string): string[] {
+  return readdirSync(dir).flatMap((name) => {
+    const path = join(dir, name);
+    return statSync(path).isDirectory() ? sourceFiles(path) : [path];
+  });
+}
+
+const sources = sourceFiles('src').map((file) => ({ file, text: readFileSync(file, 'utf8') }));
+
+describe('frontend security rules', () => {
+  it('never talks to the AI service or the database directly', () => {
+    const offenders = sources.filter(({ text }) =>
+      /localhost:8000|localhost:5432|railway\.internal|postgresql:|jdbc:|AI_SERVICE_URL|DATABASE_/.test(text));
+    expect(offenders.map((o) => o.file)).toEqual([]);
+  });
+
+  it('contains no secrets or demo credentials', () => {
+    const offenders = sources.filter(({ text }) => /ANTHROPIC_API_KEY|sk-ant-|JWT_SECRET|\$2[aby]\$\d\d\$/.test(text));
+    expect(offenders.map((o) => o.file)).toEqual([]);
+  });
+
+  it('has no self-registration endpoint', () => {
+    expect(sources.filter(({ text }) => text.includes('/api/auth/register'))).toEqual([]);
+  });
+});
