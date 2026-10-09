@@ -1,7 +1,11 @@
 import { useState, type FormEvent } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { errorMessage } from '../hooks/useApi';
+import { USERNAME_MAX } from '../auth/credentials';
+import { PasswordInput } from '../components/PasswordInput';
+import { ApiError } from '../services/apiClient';
+
+const GENERIC_ERROR = 'Datos incorrectos.';
 
 export function LoginPage() {
   const { user, login } = useAuth();
@@ -17,9 +21,12 @@ export function LoginPage() {
     setBusy(true);
     setError(null);
     try {
-      await login(username, password);
+      await login(username.trim(), password);
     } catch (e) {
-      setError(errorMessage(e));
+      // Only throttling and connectivity get their own message; everything else is "Datos incorrectos".
+      const known = e instanceof ApiError && (e.status === 0 || e.status === 429);
+      setError(known ? (e as ApiError).message : GENERIC_ERROR);
+      setPassword('');
     } finally {
       setBusy(false);
     }
@@ -27,25 +34,24 @@ export function LoginPage() {
 
   return (
     <div className="auth">
-      <form className="auth__card" onSubmit={submit}>
+      <form className="auth__card" onSubmit={submit} noValidate>
         <span className="brand brand--dark">
           <img src="/favicon.svg" alt="" width="32" height="32" />
           WiFiSense
         </span>
         <h1>Iniciar sesión</h1>
-        <p>Monitoreo y análisis de las redes Wi-Fi de tu organización.</p>
-        <label className="field">
-          <span>Usuario</span>
-          <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required />
-        </label>
-        <label className="field">
-          <span>Contraseña</span>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                 autoComplete="current-password" required />
-        </label>
+        <p>Monitoreo y análisis de las redes Wi-Fi de la universidad.</p>
+        <div className="field">
+          <label htmlFor="username">Usuario</label>
+          <input id="username" value={username} maxLength={USERNAME_MAX} autoComplete="username" required
+                 spellCheck={false} onChange={(e) => setUsername(e.target.value.slice(0, USERNAME_MAX))} />
+        </div>
+        <PasswordInput label="Contraseña" value={password} onChange={setPassword} autoComplete="current-password" />
         {error && <p className="notice notice--error" role="alert">{error}</p>}
-        <button className="button" disabled={busy}>{busy ? 'Ingresando…' : 'Ingresar'}</button>
-        <p className="auth__alt">¿No tienes cuenta? <Link to="/register">Crear cuenta</Link></p>
+        <button className="button" disabled={busy || !username.trim() || !password}>
+          {busy ? 'Ingresando…' : 'Ingresar'}
+        </button>
+        <p className="auth__alt">El acceso es solo para el equipo autorizado. Las cuentas las crea el administrador.</p>
       </form>
     </div>
   );
