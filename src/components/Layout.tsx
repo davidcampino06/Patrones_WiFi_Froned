@@ -12,13 +12,13 @@ const SECTIONS = [
   { to: '/anomalies', label: 'Anomalías' },
   { to: '/alerts', label: 'Alertas' },
   { to: '/reports', label: 'Reportes' },
-  { to: '/architecture', label: 'Arquitectura' },
 ];
 
 const ROLE_LABEL = { ADMIN: 'Administrador', ANALYST: 'Analista', VIEWER: 'Observador' };
 
 export function Layout() {
-  const { user, logout } = useAuth();
+  const { user, logout, can } = useAuth();
+  const sections = can('ADMIN') ? [...SECTIONS, { to: '/users', label: 'Usuarios' }] : SECTIONS;
   const [open, setOpen] = useState(false);
 
   return (
@@ -35,7 +35,7 @@ export function Layout() {
           </button>
         </div>
         <nav id="main-nav" aria-label="Secciones">
-          {SECTIONS.map((s) => (
+          {sections.map((s) => (
             <NavLink key={s.to} to={s.to} end={s.to === '/'} onClick={() => setOpen(false)}>
               {s.label}
             </NavLink>
