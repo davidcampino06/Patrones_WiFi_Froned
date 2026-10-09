@@ -83,7 +83,12 @@ function ResultView({ result }: { result: AnalysisResult }) {
           <div><dt>Modelo</dt><dd>{p.modelVersion}</dd></div>
           <div><dt>Puntaje de anomalía</dt><dd className="num">{formatNumber(p.anomalyScore, 3)}</dd></div>
           <div><dt>Severidad</dt><dd><StatusBadge value={p.severity} /></dd></div>
-          {p.recommendation && <div><dt>Recomendación</dt><dd>{p.recommendation}</dd></div>}
+          {p.recommendation && (
+            <div>
+              <dt>{p.recommendationSource === 'CLAUDE' ? 'Recomendaciones de la IA (Claude)' : 'Recomendación automática'}</dt>
+              <dd className="recommendation">{p.recommendation}</dd>
+            </div>
+          )}
           {p.simulatedData && <div><dt>Datos</dt><dd><span className="tag">Analizado sobre datos simulados</span></dd></div>}
         </dl>
       )}
