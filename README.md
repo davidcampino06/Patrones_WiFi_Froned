@@ -20,7 +20,7 @@ src/auth/AuthContext.tsx    sesión y rol del usuario (el backend aplica la auto
 src/hooks/                  carga de datos y selección de red
 src/components/             layout, insignias de estado, gráficos, estados de carga/error/vacío
 src/pages/                  una página por sección
-src/auth/credentials.ts     límites de usuario (20) y contraseña (10–12) y reglas de contraseña
+src/auth/credentials.ts     límites de usuario (40, nombre o correo) y contraseña (10–12) y reglas de contraseña
 tests/                      pruebas de apiClient, reglas de arquitectura y componentes
 ```
 
@@ -34,7 +34,7 @@ Administrador además registra redes).
 
 - No hay registro público. El administrador crea hasta 3 cuentas en **Usuarios**, con una lista que muestra en
   vivo qué requisitos cumple la contraseña (10–12 caracteres, mayúscula, número y carácter especial).
-- Usuario limitado a 20 caracteres y contraseña a 12: pegar textos enormes no tiene efecto.
+- Usuario (nombre o correo) limitado a 40 caracteres y contraseña a 12: pegar textos enormes no tiene efecto.
 - Botón con ícono de ojo para mostrar u ocultar la contraseña.
 - Cualquier error de login muestra solo `Datos incorrectos.`
 - `vercel.json` agrega cabeceras de seguridad (CSP, no embeber en iframes, sin referer).

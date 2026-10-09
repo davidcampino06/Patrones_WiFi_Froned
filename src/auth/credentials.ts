@@ -1,5 +1,5 @@
 // Mirrors PasswordPolicy in the backend; the backend remains the authority.
-export const USERNAME_MAX = 20;
+export const USERNAME_MAX = 40;
 export const PASSWORD_MIN = 10;
 export const PASSWORD_MAX = 12;
 
@@ -17,6 +17,6 @@ export const PASSWORD_RULES: PasswordRule[] = [
   { label: 'Sin espacios', test: (p) => p.length > 0 && !/\s/.test(p) },
 ];
 
-export const USERNAME_PATTERN = /^[A-Za-z0-9._-]{3,20}$/;
+export const USERNAME_PATTERN = /^(?=.{3,40}$)[A-Za-z0-9._-]+(@[A-Za-z0-9.-]+)?$/;
 
 export const isStrongPassword = (password: string) => PASSWORD_RULES.every((rule) => rule.test(password));

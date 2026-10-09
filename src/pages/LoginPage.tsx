@@ -42,7 +42,7 @@ export function LoginPage() {
         <h1>Iniciar sesión</h1>
         <p>Monitoreo y análisis de las redes Wi-Fi de la universidad.</p>
         <div className="field">
-          <label htmlFor="username">Usuario</label>
+          <label htmlFor="username">Usuario o correo</label>
           <input id="username" value={username} maxLength={USERNAME_MAX} autoComplete="username" required
                  spellCheck={false} onChange={(e) => setUsername(e.target.value.slice(0, USERNAME_MAX))} />
         </div>

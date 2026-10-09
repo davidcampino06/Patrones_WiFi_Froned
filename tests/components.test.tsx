@@ -33,12 +33,12 @@ describe('DataState', () => {
 });
 
 describe('LoginPage', () => {
-  it('limits username to 20 and password to 12 characters', async () => {
+  it('limits username to 40 and password to 12 characters', async () => {
     renderLogin();
-    await userEvent.type(screen.getByLabelText('Usuario'), 'a'.repeat(50));
+    await userEvent.type(screen.getByLabelText('Usuario o correo'), 'a'.repeat(50));
     await userEvent.type(screen.getByLabelText('Contraseña'), 'b'.repeat(50));
 
-    expect(screen.getByLabelText('Usuario')).toHaveValue('a'.repeat(20));
+    expect(screen.getByLabelText('Usuario o correo')).toHaveValue('a'.repeat(40));
     expect(screen.getByLabelText('Contraseña')).toHaveValue('b'.repeat(12));
   });
 
@@ -60,7 +60,7 @@ describe('LoginPage', () => {
     });
     renderLogin();
 
-    await userEvent.type(screen.getByLabelText('Usuario'), 'admin');
+    await userEvent.type(screen.getByLabelText('Usuario o correo'), 'admin');
     await userEvent.type(screen.getByLabelText('Contraseña'), 'Wrong#2026a');
     await userEvent.click(screen.getByRole('button', { name: 'Ingresar' }));
 
@@ -74,7 +74,7 @@ describe('LoginPage', () => {
     });
     renderLogin();
 
-    await userEvent.type(screen.getByLabelText('Usuario'), 'admin');
+    await userEvent.type(screen.getByLabelText('Usuario o correo'), 'admin');
     await userEvent.type(screen.getByLabelText('Contraseña'), 'Wrong#2026a');
     await userEvent.click(screen.getByRole('button', { name: 'Ingresar' }));
 
