@@ -14,7 +14,7 @@ vi.mock('../src/services/api', () => ({
   api: { myNetworks: vi.fn(), createMyNetwork: vi.fn(), updateMyNetwork: vi.fn(), deleteMyNetwork: vi.fn(),
          myTests: vi.fn(), saveMyTest: vi.fn(), myAgent: vi.fn(), revokeAgentKey: vi.fn(),
          createAgentPairingCode: vi.fn(), updateAgentDevice: vi.fn(), alertPreferences: vi.fn(), updateAlertPreferences: vi.fn(), myAccount: vi.fn(),
-         nearbyNetworks: vi.fn(), startScan: vi.fn(), scanHistory: vi.fn() },
+         nearbyNetworks: vi.fn(), startScan: vi.fn(), scanHistory: vi.fn(), myRouter: vi.fn() },
 }));
 vi.mock('../src/services/speedTest', () => ({ runSpeedTest: vi.fn() }));
 
@@ -28,6 +28,8 @@ beforeEach(() => {
     login: vi.fn(), register: vi.fn(), renew: vi.fn(), logout: vi.fn(), can: () => false,
   });
   vi.mocked(api.myNetworks).mockReset();
+  vi.mocked(api.myRouter).mockReset().mockResolvedValue({ identified: false, vendor: null, model: null, name: null,
+    lastSeenAt: null, namesFromRouter: 0, confirmedNames: 0, capabilities: [], steps: [] });
   vi.mocked(api.createMyNetwork).mockReset();
   vi.mocked(api.myTests).mockReset().mockResolvedValue([]);
   vi.mocked(api.saveMyTest).mockReset();
