@@ -125,4 +125,13 @@ describe('Redes cercanas', () => {
     expect(await screen.findByText(/no se ha conectado en los últimos minutos/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Escanear ahora/ })).toBeDisabled();
   });
+
+  it('después de escanear hay que esperar unos segundos y la cuenta regresiva se ve', async () => {
+    vi.mocked(api.nearbyNetworks).mockResolvedValue(panel({ manualAvailableAt: '2026-10-26T20:00:12Z' }));
+    render(<NearbyNetworksPanel network={casa} />);
+
+    expect(await screen.findByText('Podrás escanear de nuevo en 12 s.')).toBeInTheDocument();
+    await act(() => vi.advanceTimersByTimeAsync(13_000));
+    expect(screen.getByRole('button', { name: /Escanear ahora/ })).toBeEnabled();
+  });
 });
