@@ -12,6 +12,7 @@ import { DeviceFilters, type DeviceView, hasOwnName, visibleDevices } from './De
 import { DeviceHistory } from './DeviceHistory';
 import { IdentifyWizard } from './IdentifyWizard';
 import { Gauge, type GaugeStatus } from './Gauge';
+import { IdentityTag } from './IdentityTag';
 import { Icon, type IconName } from './Icon';
 
 /** Windows installer built by GitHub Actions in the AI repository (release "agente"). */
@@ -660,6 +661,7 @@ function DeviceRow({ device, shownName, onChange, updateDevice, loadHistory, tea
           </span>
         )}
         <span className="devrow__sub">
+          <IdentityTag device={device} />{' '}
           <span title={device.privateMac && !device.vendor
             ? 'Los celulares y tabletas usan una dirección aleatoria en cada red para que no los rastreen.' : undefined}>
             {deviceMaker(device, shownName)}
