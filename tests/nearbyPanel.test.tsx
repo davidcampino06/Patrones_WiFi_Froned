@@ -161,4 +161,12 @@ describe('Redes cercanas', () => {
     await user.click(screen.getByRole('button', { name: 'Quitar filtros' }));
     expect(screen.getAllByRole('row')).toHaveLength(4);
   });
+
+  it('un escaneo que no vio nada lo dice, sin tabla vacía', async () => {
+    vi.mocked(api.nearbyNetworks).mockResolvedValue(panel({ accessPoints: [] }));
+    render(<NearbyNetworksPanel network={casa} />);
+
+    expect(await screen.findByText(/no encontró redes al alcance/)).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
 });
