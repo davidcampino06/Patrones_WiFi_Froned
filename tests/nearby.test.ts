@@ -14,5 +14,11 @@ describe('filtros de las redes cercanas', () => {
   it('sin filtros se ve todo, en el orden del servidor', () => {
     expect(filterAccessPoints(list, NO_FILTERS).map((a) => a.id)).toEqual([1, 2, 3, 4, 5]);
   });
+
+  it('busca por nombre sin importar tildes de la búsqueda ni mayúsculas, y por marca', () => {
+    expect(filterAccessPoints(list, { ...NO_FILTERS, query: 'CAFÉ' }).map((a) => a.id)).toEqual([2]);
+    expect(filterAccessPoints(list, { ...NO_FILTERS, query: 'tp-link' }).map((a) => a.id)).toEqual([1]);
+    expect(filterAccessPoints(list, { ...NO_FILTERS, query: 'oculta' }).map((a) => a.id)).toEqual([3]);
+  });
 });
 
