@@ -1,4 +1,5 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NearbyNetworksPanel } from '../src/components/NearbyNetworksPanel';
 import { api } from '../src/services/api';
@@ -63,5 +64,30 @@ describe('Redes cercanas', () => {
     expect(within(rows[2]).getByText('4 escaneos')).toBeInTheDocument();
     expect(screen.getByText(/no la hace tuya ni te da permiso de usarla/)).toBeInTheDocument();
     expect(screen.getByText(/1 sin contraseña/)).toBeInTheDocument();
+  });
+
+  it('el botón pide el escaneo y la página lo sigue hasta que termina', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    vi.mocked(api.nearbyNetworks)
+      .mockResolvedValueOnce(panel({ current: null, lastCompleted: null, accessPoints: [] }))
+      .mockResolvedValueOnce(panel({ current: scan({ status: 'PENDING', finishedAt: null }), lastCompleted: null,
+                                     accessPoints: [] }))
+      .mockResolvedValueOnce(panel({ current: scan({ status: 'RUNNING', finishedAt: null }), lastCompleted: null,
+                                     accessPoints: [] }))
+      .mockResolvedValue(panel());
+    vi.mocked(api.startScan).mockResolvedValue(scan({ status: 'PENDING' }));
+    render(<NearbyNetworksPanel network={casa} />);
+
+    await user.click(await screen.findByRole('button', { name: /Escanear ahora/ }));
+    expect(api.startScan).toHaveBeenCalledWith(1);
+    expect(await screen.findByText('Esperando al agente')).toBeInTheDocument();
+    expect(screen.getByText(/pregunta cada 30 segundos/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Escanear ahora/ })).toBeDisabled();
+
+    await act(() => vi.advanceTimersByTimeAsync(4_000));
+    expect(await screen.findByText('Escaneando')).toBeInTheDocument();
+    await act(() => vi.advanceTimersByTimeAsync(4_000));
+    expect(await screen.findByRole('table', { name: 'Redes cercanas' })).toBeInTheDocument();
+    expect(screen.getByText('Completado')).toBeInTheDocument();
   });
 });
