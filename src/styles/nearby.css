@@ -19,3 +19,18 @@
   padding: 9px 12px; border: 1px solid var(--input-line); border-radius: var(--radius-control); background: var(--input-bg);
   color: var(--ink); font: inherit;
 }
+
+.nearby__table td { vertical-align: top; }
+.nearby__table tr.is-connected td { background: var(--accent-soft); }
+.nearby__name { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; font-weight: 500; overflow-wrap: anywhere; }
+.nearby__name .tag--accent { margin-left: 0; white-space: nowrap; }
+.nearby__signal { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.nearby__bars { width: 16px; height: 12px; color: var(--accent); }
+.nearby__bars .on { fill: currentColor; }
+.nearby__bars .off { fill: currentColor; opacity: .2; }
+.nearby__security { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.nearby__history { margin-top: 14px; }
+.nearby__history summary { cursor: pointer; color: var(--accent-ink); font-weight: 500; }
+.nearby__scans { display: grid; gap: 6px; margin-top: 10px; }
+.nearby__scans li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: .9rem; }
