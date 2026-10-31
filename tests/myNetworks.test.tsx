@@ -14,7 +14,7 @@ vi.mock('../src/services/api', () => ({
   api: { myNetworks: vi.fn(), createMyNetwork: vi.fn(), updateMyNetwork: vi.fn(), deleteMyNetwork: vi.fn(),
          myTests: vi.fn(), saveMyTest: vi.fn(), myAgent: vi.fn(), revokeAgentKey: vi.fn(),
          createAgentPairingCode: vi.fn(), updateAgentDevice: vi.fn(), alertPreferences: vi.fn(), updateAlertPreferences: vi.fn(), myAccount: vi.fn(),
-         nearbyNetworks: vi.fn(), startScan: vi.fn(), scanHistory: vi.fn(), myRouter: vi.fn() },
+         nearbyNetworks: vi.fn(), startScan: vi.fn(), scanHistory: vi.fn(), nearbyAnalysis: vi.fn(), myRouter: vi.fn() },
 }));
 vi.mock('../src/services/speedTest', () => ({ runSpeedTest: vi.fn() }));
 
