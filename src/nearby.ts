@@ -58,3 +58,12 @@ export function filterAccessPoints(list: NearbyAccessPoint[], filters: NearbyFil
     return matchesSecurity(ap, filters.security);
   });
 }
+
+/** 0 to 4 bars, like the Wi-Fi icon of a phone; null when the system did not give the signal. */
+export function signalBars(percent: number | null): number | null {
+  if (percent === null) return null;
+  if (percent >= 75) return 4;
+  if (percent >= 50) return 3;
+  if (percent >= 30) return 2;
+  return percent > 0 ? 1 : 0;
+}
