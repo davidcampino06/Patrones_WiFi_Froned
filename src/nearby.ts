@@ -67,3 +67,18 @@ export function signalBars(percent: number | null): number | null {
   if (percent >= 30) return 2;
   return percent > 0 ? 1 : 0;
 }
+
+/** Distinct network names (each hidden access point counts as one) and how many use each band. */
+export function summarize(list: NearbyAccessPoint[]): { networks: number; open: number; bands: Record<string, number> } {
+  const names = new Set<string>();
+  let hidden = 0;
+  const open = new Set<string>();
+  const bands: Record<string, number> = {};
+  for (const ap of list) {
+    if (ap.ssid === null) hidden++;
+    else names.add(ap.ssid);
+    if (ap.authentication === 'OPEN') open.add(ap.ssid ?? `oculta-${ap.id}`);
+    if (ap.band) bands[ap.band] = (bands[ap.band] ?? 0) + 1;
+  }
+  return { networks: names.size + hidden, open: open.size, bands };
+}
