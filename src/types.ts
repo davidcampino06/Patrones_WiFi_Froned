@@ -638,3 +638,23 @@ export interface WifiScan {
   durationMs: number | null;
 }
 
+/** A nearby access point as a scan saw it. Unknown values are null, never guessed. */
+export interface NearbyAccessPoint {
+  id: number;
+  ssid: string | null;
+  hidden: boolean;
+  bssidSuffix: string | null;
+  vendor: string | null;
+  signalPercent: number | null;
+  signalDbm: number | null;
+  channel: number | null;
+  band: '2.4' | '5' | '6' | null;
+  radioType: string | null;
+  authentication: WifiAuthentication;
+  securityLabel: string | null;
+  cipher: string | null;
+  connected: boolean;
+  firstSeenAt: string;
+  timesSeen: number;
+}
+
