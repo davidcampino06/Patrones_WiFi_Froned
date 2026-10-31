@@ -1,9 +1,11 @@
 import { apiClient } from './apiClient';
 import { sealPassword } from './passwordCipher';
 import type {
-  Account, AgentDevice, AgentOverview, DeviceSessionHistory, AgentPairingCode, AlertPreferences, AiModelOverview, AiModelVersion, AiPrediction, AiTrainingStatus, Alert, AlertStatus, AnalysisResult, AnalysisType, AnomalyCauseCount, AuthResponse,
-  ConnectionTest, ConnectionTestInput, DashboardSummary, DataSourceType, Device, HomeNetwork, HomeNetworkInput, IdentifyMode, Location,
-  Measurement, Network, NetworkQuality, NetworkReport, WeeklyReport, ProtocolStatistic, SensorStatus, StaffRole, Strategy, SystemStatus,
+  Account, AgentDevice, AgentOverview, DeviceSessionHistory, AgentPairingCode, AlertPreferences, AiModelOverview,
+  AiModelVersion, AiPrediction, AiTrainingStatus, Alert, AlertStatus, AnalysisResult, AnalysisType,
+  AnomalyCauseCount, AuthResponse, ConnectionTest, ConnectionTestInput, NearbyNetworks, WifiScan, DashboardSummary,
+  DataSourceType, Device, HomeNetwork, HomeNetworkInput, IdentifyMode, Location, Measurement, Network,
+  NetworkQuality, NetworkReport, WeeklyReport, ProtocolStatistic, SensorStatus, StaffRole, Strategy, SystemStatus,
   TeamNetworks, TrafficSession, User, Zone,
 } from '../types';
 
@@ -72,6 +74,10 @@ export const api = {
   /** "Which device is this?": the agent reports every minute for the next ten minutes. */
   identifyAgentDevice: (networkId: number) => apiClient.post<IdentifyMode>(`/api/my/networks/${networkId}/agent/identify`),
   revokeAgentKey: (networkId: number) => apiClient.delete(`/api/my/networks/${networkId}/agent/key`),
+  /** Nearby Wi-Fi networks seen by the agent: last result, scan in progress and whether it is out of date. */
+  nearbyNetworks: (networkId: number) => apiClient.get<NearbyNetworks>(`/api/my/networks/${networkId}/nearby`),
+  /** "Escanear ahora": the scan waits for the agent; follow it with nearbyNetworks. */
+  startScan: (networkId: number) => apiClient.post<WifiScan>(`/api/my/networks/${networkId}/scans`),
 
   dashboard: () => apiClient.get<DashboardSummary>('/api/dashboard/summary'),
   /** Real home networks of the end users (ADMIN and ANALYST). */
