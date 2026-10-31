@@ -686,3 +686,14 @@ export interface Finding {
   confidence: number | null;
 }
 
+/** The AI reading of the last scan of the nearby networks; available false (with a message) when there is none. */
+export interface NearbyAnalysis {
+  scanId: number | null;
+  scannedAt: string | null;
+  available: boolean;
+  message: string | null;
+  facts: Finding[];
+  inferences: Finding[];
+  uncertainty: string | null;
+}
+
