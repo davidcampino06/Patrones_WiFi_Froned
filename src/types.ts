@@ -658,3 +658,21 @@ export interface NearbyAccessPoint {
   timesSeen: number;
 }
 
+/** "Redes cercanas" of one network. */
+export interface NearbyNetworks {
+  agentInstalled: boolean;
+  agentOnline: boolean;
+  current: WifiScan | null;
+  lastCompleted: WifiScan | null;
+  stale: boolean;
+  staleAfterMinutes: number;
+  nextScheduledAt: string | null;
+  manualAvailableAt: string | null;
+  accessPoints: NearbyAccessPoint[];
+}
+
+export interface WifiScanDetail {
+  scan: WifiScan;
+  accessPoints: NearbyAccessPoint[];
+}
+
