@@ -706,3 +706,17 @@ export interface NearbyAnalysis {
   uncertainty: string | null;
 }
 
+/** What WiFiSense knows of the router of a network and what it can (and cannot) do with it. */
+export interface RouterInfo {
+  identified: boolean;
+  vendor: string | null;
+  model: string | null;
+  name: string | null;
+  lastSeenAt: string | null;
+  namesFromRouter: number;
+  confirmedNames: number;
+  capabilities: { code: 'READ_NAMES' | 'LIST_CLIENTS' | 'BLOCK_DEVICE' | 'CHANGE_PASSWORD'; label: string;
+    status: 'AVAILABLE' | 'UNAVAILABLE'; detail: string }[];
+  steps: string[];
+}
+
