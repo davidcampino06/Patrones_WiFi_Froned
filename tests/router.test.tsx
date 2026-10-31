@@ -1,5 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { FunctionGuide } from '../src/components/FunctionGuide';
 import { RouterPanel } from '../src/components/RouterPanel';
 import type { RouterInfo } from '../src/types';
 
@@ -38,3 +39,14 @@ describe('Tu router', () => {
   });
 });
 
+describe('Qué hace cada cosa', () => {
+  it('distingue el escaneo, la medición, los equipos, la captura y el router', () => {
+    render(<FunctionGuide />);
+
+    for (const title of ['Redes cercanas.', 'Medición de tu conexión.', 'Equipos de la red.', 'Captura técnica.',
+      'Administrar el router.']) {
+      expect(screen.getByText(title)).toBeInTheDocument();
+    }
+    expect(screen.getByText(/Nunca guarda contenido/)).toBeInTheDocument();
+  });
+});
