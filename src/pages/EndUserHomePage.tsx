@@ -5,6 +5,7 @@ import { AgentPanel } from '../components/AgentPanel';
 import { ConnectionPanel } from '../components/ConnectionPanel';
 import { EndUserShell } from '../components/EndUserShell';
 import { HomeNetworkForm } from '../components/HomeNetworkForm';
+import { FunctionGuide } from '../components/FunctionGuide';
 import { NearbyNetworksPanel } from '../components/NearbyNetworksPanel';
 import { RouterPanel } from '../components/RouterPanel';
 import { StatusStrip } from '../components/StatusStrip';
@@ -75,8 +76,11 @@ export function EndUserHomePage() {
       {selected && <AgentPanel key={`agent-${selected.id}`} network={selected} />}
 
       {selected && <NearbyNetworksPanel key={`nearby-${selected.id}`} network={selected} />}
+
       {selected && <RouterPanel key={`router-${selected.id}`} load={() => api.myRouter(selected.id)}
                                 deps={[selected.id]} />}
+
+      <FunctionGuide />
 
       <section className="eu-section" aria-labelledby="my-networks">
         <div className="eu-section__head">
