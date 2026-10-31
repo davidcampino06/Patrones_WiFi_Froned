@@ -676,3 +676,13 @@ export interface WifiScanDetail {
   accessPoints: NearbyAccessPoint[];
 }
 
+/** A fact (counted, confidence null) or an inference (a possible explanation with its confidence, 0 to 1). */
+export interface Finding {
+  code: string;
+  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  title: string;
+  evidence: string;
+  recommendation: string | null;
+  confidence: number | null;
+}
+
