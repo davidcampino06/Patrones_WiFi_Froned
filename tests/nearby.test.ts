@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { filterAccessPoints, NO_FILTERS, signalBars } from '../src/nearby';
+import { filterAccessPoints, isWeakSecurity, NO_FILTERS, signalBars, summarize } from '../src/nearby';
 import { ap } from './nearbyFixtures';
 
 const list = [
@@ -42,5 +42,15 @@ describe('lo que se muestra de cada red', () => {
   it('barras de señal como en un celular, y ninguna si el sistema no dio la señal', () => {
     expect([90, 60, 40, 10, 0].map(signalBars)).toEqual([4, 3, 2, 1, 0]);
     expect(signalBars(null)).toBeNull();
+  });
+
+  it('abiertas, WEP y WPA son débiles; WPA2 y WPA3 no', () => {
+    expect(['OPEN', 'WEP', 'WPA'].every((a) => isWeakSecurity(a as never))).toBe(true);
+    expect(isWeakSecurity('WPA2') || isWeakSecurity('WPA3') || isWeakSecurity('UNKNOWN')).toBe(false);
+  });
+
+  it('cuenta redes distintas (cada oculta como una), las abiertas y las bandas', () => {
+    const twoAps = [...list, ap(6, { ssid: 'Casa-5G', band: '5' })];
+    expect(summarize(twoAps)).toEqual({ networks: 5, open: 1, bands: { '2.4': 4, '5': 2 } });
   });
 });
