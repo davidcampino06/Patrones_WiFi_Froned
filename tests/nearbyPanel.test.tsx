@@ -169,4 +169,21 @@ describe('Redes cercanas', () => {
     expect(await screen.findByText(/no encontró redes al alcance/)).toBeInTheDocument();
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
+
+  it('el historial se carga al abrirlo', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    vi.mocked(api.nearbyNetworks).mockResolvedValue(panel());
+    vi.mocked(api.scanHistory).mockResolvedValue([
+      scan({ id: 52, status: 'FAILED', failureMessage: 'El Wi-Fi del computador del agente está apagado.' }),
+      scan({ id: 51, origin: 'SCHEDULED' }),
+    ]);
+    render(<NearbyNetworksPanel network={casa} />);
+    expect(api.scanHistory).not.toHaveBeenCalled();
+
+    await user.click(await screen.findByText('Historial de escaneos'));
+    expect(await screen.findByText('El Wi-Fi del computador del agente está apagado.')).toBeInTheDocument();
+    expect(screen.getByText('Programado')).toBeInTheDocument();
+    expect(screen.getByText('3 redes, 3 puntos de acceso')).toBeInTheDocument();
+    expect(api.scanHistory).toHaveBeenCalledWith(1, 10);
+  });
 });
