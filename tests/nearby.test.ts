@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { filterAccessPoints, isWeakSecurity, NO_FILTERS, signalBars, summarize } from '../src/nearby';
+import { filterAccessPoints, isScanActive, isWeakSecurity, NO_FILTERS, signalBars, summarize } from '../src/nearby';
 import { ap } from './nearbyFixtures';
 
 const list = [
@@ -52,5 +52,12 @@ describe('lo que se muestra de cada red', () => {
   it('cuenta redes distintas (cada oculta como una), las abiertas y las bandas', () => {
     const twoAps = [...list, ap(6, { ssid: 'Casa-5G', band: '5' })];
     expect(summarize(twoAps)).toEqual({ networks: 5, open: 1, bands: { '2.4': 4, '5': 2 } });
+  });
+
+  it('un escaneo esperando o en curso está activo', () => {
+    expect(isScanActive({ status: 'PENDING' } as never)).toBe(true);
+    expect(isScanActive({ status: 'RUNNING' } as never)).toBe(true);
+    expect(isScanActive({ status: 'FAILED' } as never)).toBe(false);
+    expect(isScanActive(null)).toBe(false);
   });
 });
