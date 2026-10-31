@@ -3,10 +3,10 @@ import { sealPassword } from './passwordCipher';
 import type {
   Account, AgentDevice, AgentOverview, DeviceSessionHistory, AgentPairingCode, AlertPreferences, AiModelOverview,
   AiModelVersion, AiPrediction, AiTrainingStatus, Alert, AlertStatus, AnalysisResult, AnalysisType,
-  AnomalyCauseCount, AuthResponse, ConnectionTest, ConnectionTestInput, NearbyNetworks, WifiScan, DashboardSummary,
-  DataSourceType, Device, HomeNetwork, HomeNetworkInput, IdentifyMode, Location, Measurement, Network,
-  NetworkQuality, NetworkReport, WeeklyReport, ProtocolStatistic, SensorStatus, StaffRole, Strategy, SystemStatus,
-  TeamNetworks, TrafficSession, User, Zone,
+  AnomalyCauseCount, AuthResponse, ConnectionTest, ConnectionTestInput, NearbyNetworks, WifiScan, WifiScanDetail,
+  DashboardSummary, DataSourceType, Device, HomeNetwork, HomeNetworkInput, IdentifyMode, Location, Measurement,
+  Network, NetworkQuality, NetworkReport, WeeklyReport, ProtocolStatistic, SensorStatus, StaffRole, Strategy,
+  SystemStatus, TeamNetworks, TrafficSession, User, Zone,
 } from '../types';
 
 export interface NetworkInput {
@@ -78,6 +78,10 @@ export const api = {
   nearbyNetworks: (networkId: number) => apiClient.get<NearbyNetworks>(`/api/my/networks/${networkId}/nearby`),
   /** "Escanear ahora": the scan waits for the agent; follow it with nearbyNetworks. */
   startScan: (networkId: number) => apiClient.post<WifiScan>(`/api/my/networks/${networkId}/scans`),
+  scanHistory: (networkId: number, limit = 10) =>
+    apiClient.get<WifiScan[]>(`/api/my/networks/${networkId}/scans`, { limit }),
+  scanDetail: (networkId: number, scanId: number) =>
+    apiClient.get<WifiScanDetail>(`/api/my/networks/${networkId}/scans/${scanId}`),
 
   dashboard: () => apiClient.get<DashboardSummary>('/api/dashboard/summary'),
   /** Real home networks of the end users (ADMIN and ANALYST). */
