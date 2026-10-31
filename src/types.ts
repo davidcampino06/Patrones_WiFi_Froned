@@ -617,3 +617,6 @@ export interface WeeklyReport {
 /** Life of a scan of the nearby Wi-Fi networks. */
 export type ScanStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 export type ScanOrigin = 'MANUAL' | 'SCHEDULED';
+export type ScanFailure = 'NO_ADAPTER' | 'ADAPTER_OFF' | 'SERVICE_OFF' | 'LOCATION_PERMISSION' | 'COMMAND_FAILED'
+  | 'TIMEOUT' | 'UNREADABLE_OUTPUT' | 'UNSUPPORTED_OS' | 'AGENT_NO_RESPONSE';
+
