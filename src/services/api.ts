@@ -6,7 +6,7 @@ import type {
   AnomalyCauseCount, AuthResponse, ConnectionTest, ConnectionTestInput, NearbyNetworks, WifiScan, WifiScanDetail,
   DashboardSummary, DataSourceType, Device, HomeNetwork, HomeNetworkInput, IdentifyMode, Location, Measurement,
   Network, NetworkQuality, NetworkReport, WeeklyReport, ProtocolStatistic, SensorStatus, StaffRole, Strategy,
-  SystemStatus, TeamNetworks, TrafficSession, User, Zone,
+  SystemStatus, TeamNetworks, TrafficSession, User, Zone, NearbyAnalysis,
 } from '../types';
 
 export interface NetworkInput {
@@ -82,6 +82,9 @@ export const api = {
     apiClient.get<WifiScan[]>(`/api/my/networks/${networkId}/scans`, { limit }),
   scanDetail: (networkId: number, scanId: number) =>
     apiClient.get<WifiScanDetail>(`/api/my/networks/${networkId}/scans/${scanId}`),
+  /** Facts and inferences of the AI about the last completed scan. */
+  nearbyAnalysis: (networkId: number) =>
+    apiClient.get<NearbyAnalysis>(`/api/my/networks/${networkId}/nearby/analysis`),
 
   dashboard: () => apiClient.get<DashboardSummary>('/api/dashboard/summary'),
   /** Real home networks of the end users (ADMIN and ANALYST). */
