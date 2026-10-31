@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { DeviceList } from '../components/AgentPanel';
 import { DataState } from '../components/DataState';
 import { PageHeader } from '../components/PageHeader';
+import { RouterPanel } from '../components/RouterPanel';
 import { StatusBadge } from '../components/StatusBadge';
 import { formatBytes, formatDateTime } from '../format';
 import { useApi } from '../hooks/useApi';
@@ -42,6 +43,10 @@ export function DevicesPage() {
       {network && (network.dataSourceType === 'AGENT'
         ? <SensorDevices key={network.id} network={network} />
         : <DemoDevices key={network.id} networkId={network.id} />)}
+      {network?.dataSourceType === 'AGENT' && (
+        <RouterPanel key={`router-${network.id}`} title="Router de la red" load={() => api.teamRouter(network.id)}
+                     deps={[network.id]} />
+      )}
     </>
   );
 }
