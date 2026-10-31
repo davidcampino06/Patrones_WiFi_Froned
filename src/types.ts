@@ -477,7 +477,16 @@ export interface AgentDevice {
   role?: DeviceRole | null;
   /** Model the device announces ("iPhone15,2", "Chromecast"). */
   model?: string | null;
+  /** Where its automatic name came from (agent 2.0.0); null for older agents or when it has no name. */
+  nameSource?: NameSource | null;
+  /** How well it is identified, from ALIAS (the user named it) to UNKNOWN: a guess is never shown as a fact. */
+  identification?: DeviceIdentification | null;
 }
+
+/** CONFIRMED: the device and the router say the same name; ANNOUNCED: the device said it; ROUTER: the router's DNS
+ *  said it; DNS: the network said it. */
+export type NameSource = 'CONFIRMED' | 'ANNOUNCED' | 'ROUTER' | 'DNS';
+export type DeviceIdentification = 'ALIAS' | NameSource | 'NAMED' | 'ESTIMATED' | 'UNKNOWN';
 
 export type DeviceKind = 'PHONE' | 'COMPUTER' | 'TV' | 'PRINTER' | 'CAMERA' | 'SPEAKER' | 'CONSOLE' | 'IOT';
 export type DeviceRole = 'SELF' | 'ROUTER';
