@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { filterAccessPoints, NO_FILTERS } from '../src/nearby';
+import { filterAccessPoints, NO_FILTERS, signalBars } from '../src/nearby';
 import { ap } from './nearbyFixtures';
 
 const list = [
@@ -38,3 +38,9 @@ describe('filtros de las redes cercanas', () => {
   });
 });
 
+describe('lo que se muestra de cada red', () => {
+  it('barras de señal como en un celular, y ninguna si el sistema no dio la señal', () => {
+    expect([90, 60, 40, 10, 0].map(signalBars)).toEqual([4, 3, 2, 1, 0]);
+    expect(signalBars(null)).toBeNull();
+  });
+});
