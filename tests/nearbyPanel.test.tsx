@@ -111,4 +111,18 @@ describe('Redes cercanas', () => {
 
     expect(await screen.findByText(/pueden estar desactualizados/)).toHaveTextContent('hace 4 h');
   });
+
+  it('sin agente, o con el agente apagado, el botón dice por qué no se puede', async () => {
+    vi.mocked(api.nearbyNetworks).mockResolvedValueOnce(panel({ agentInstalled: false, agentOnline: false,
+      current: null, lastCompleted: null, accessPoints: [] }));
+    const { unmount } = render(<NearbyNetworksPanel network={casa} />);
+    expect(await screen.findByText(/Instala el agente WiFiSense/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Escanear ahora/ })).toBeDisabled();
+    unmount();
+
+    vi.mocked(api.nearbyNetworks).mockResolvedValueOnce(panel({ agentOnline: false }));
+    render(<NearbyNetworksPanel network={casa} />);
+    expect(await screen.findByText(/no se ha conectado en los últimos minutos/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Escanear ahora/ })).toBeDisabled();
+  });
 });
