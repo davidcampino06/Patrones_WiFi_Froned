@@ -620,3 +620,21 @@ export type ScanOrigin = 'MANUAL' | 'SCHEDULED';
 export type ScanFailure = 'NO_ADAPTER' | 'ADAPTER_OFF' | 'SERVICE_OFF' | 'LOCATION_PERMISSION' | 'COMMAND_FAILED'
   | 'TIMEOUT' | 'UNREADABLE_OUTPUT' | 'UNSUPPORTED_OS' | 'AGENT_NO_RESPONSE';
 
+/** One scan; failureMessage is the sentence the backend wrote for the user. */
+export interface WifiScan {
+  id: number;
+  origin: ScanOrigin;
+  status: ScanStatus;
+  requestedAt: string;
+  startedAt: string | null;
+  finishedAt: string | null;
+  failureReason: ScanFailure | null;
+  failureMessage: string | null;
+  interfaceName: string | null;
+  scanTool: 'NETSH' | 'NMCLI' | null;
+  fresh: boolean | null;
+  networkCount: number | null;
+  accessPointCount: number | null;
+  durationMs: number | null;
+}
+
