@@ -82,3 +82,18 @@ export function summarize(list: NearbyAccessPoint[]): { networks: number; open: 
   }
   return { networks: names.size + hidden, open: open.size, bands };
 }
+
+/** Seconds until "Escanear ahora" can be pressed again (0 when it can). */
+export function secondsUntil(iso: string | null, now: Date): number {
+  if (!iso) return 0;
+  return Math.max(0, Math.ceil((new Date(iso).getTime() - now.getTime()) / 1000));
+}
+
+/** "hace 3 min", "hace 2 h", "hace 1 d". */
+export function ago(iso: string, now: Date): string {
+  const minutes = Math.max(0, Math.round((now.getTime() - new Date(iso).getTime()) / 60_000));
+  if (minutes < 1) return 'hace un momento';
+  if (minutes < 60) return `hace ${minutes} min`;
+  if (minutes < 1440) return `hace ${Math.round(minutes / 60)} h`;
+  return `hace ${Math.round(minutes / 1440)} d`;
+}
