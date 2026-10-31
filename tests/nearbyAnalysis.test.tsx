@@ -45,4 +45,11 @@ describe('Lectura de la IA de las redes cercanas', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('no está disponible');
     expect(screen.queryByRole('region', { name: 'Hechos medidos' })).not.toBeInTheDocument();
   });
+
+  it('sin escaneo completado no se puede pedir', () => {
+    render(<NearbyAnalysisSection networkId={1} scanId={null} />);
+
+    expect(screen.getByRole('button', { name: /Analizar con IA/ })).toBeDisabled();
+    expect(screen.getByText(/Cuando haya un escaneo completado/)).toBeInTheDocument();
+  });
 });
