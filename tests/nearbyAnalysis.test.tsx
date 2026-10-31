@@ -33,4 +33,16 @@ describe('Lectura de la IA de las redes cercanas', () => {
       .toBeInTheDocument();
     expect(screen.getByText(/lo que la antena vio en ese momento/)).toBeInTheDocument();
   });
+
+  it('cuando la IA no está disponible lo dice sin inventar nada', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.nearbyAnalysis).mockResolvedValue({ scanId: 50, scannedAt: null, available: false,
+      message: 'El análisis con IA no está disponible en este momento.', facts: [], inferences: [], uncertainty: null });
+    render(<NearbyAnalysisSection networkId={1} scanId={50} />);
+
+    await user.click(screen.getByRole('button', { name: /Analizar con IA/ }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('no está disponible');
+    expect(screen.queryByRole('region', { name: 'Hechos medidos' })).not.toBeInTheDocument();
+  });
 });
