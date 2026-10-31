@@ -614,3 +614,6 @@ export interface WeeklyReport {
   security: { latestScore: number; latestGrade: SecurityGrade; lowestScore: number } | null;
   highlights: string[];
 }
+/** Life of a scan of the nearby Wi-Fi networks. */
+export type ScanStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+export type ScanOrigin = 'MANUAL' | 'SCHEDULED';
