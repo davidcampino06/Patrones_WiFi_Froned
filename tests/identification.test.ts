@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { identificationOf } from '../src/identification';
+import { identificationLabel, identificationOf, isNamed } from '../src/identification';
 import type { AgentDevice } from '../src/types';
 
 const device = (change: Partial<AgentDevice>): AgentDevice => ({
@@ -18,5 +18,12 @@ describe('cómo se sabe el nombre de un equipo', () => {
     expect(identificationOf(device({ hostname: 'Galaxy' }))).toBe('NAMED');
     expect(identificationOf(device({ vendor: 'Apple' }))).toBe('ESTIMATED');
     expect(identificationOf(device({ privateMac: true }))).toBe('UNKNOWN');
+  });
+
+  it('un fabricante estimado nunca cuenta como nombre', () => {
+    expect(isNamed('ESTIMATED')).toBe(false);
+    expect(isNamed('UNKNOWN')).toBe(false);
+    expect(isNamed('DNS')).toBe(true);
+    expect(identificationLabel.ESTIMATED).toContain('Estimado');
   });
 });
