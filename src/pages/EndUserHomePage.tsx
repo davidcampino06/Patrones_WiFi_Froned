@@ -5,6 +5,7 @@ import { AgentPanel } from '../components/AgentPanel';
 import { ConnectionPanel } from '../components/ConnectionPanel';
 import { EndUserShell } from '../components/EndUserShell';
 import { HomeNetworkForm } from '../components/HomeNetworkForm';
+import { NearbyNetworksPanel } from '../components/NearbyNetworksPanel';
 import { StatusStrip } from '../components/StatusStrip';
 import { TopBar } from '../components/TopBar';
 import { formatDateTime, greetingName } from '../format';
@@ -72,6 +73,7 @@ export function EndUserHomePage() {
 
       {selected && <AgentPanel key={`agent-${selected.id}`} network={selected} />}
 
+      {selected && <NearbyNetworksPanel key={`nearby-${selected.id}`} network={selected} />}
       <section className="eu-section" aria-labelledby="my-networks">
         <div className="eu-section__head">
           <h2 id="my-networks">Mis redes</h2>
