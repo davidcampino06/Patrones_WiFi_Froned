@@ -1,0 +1,21 @@
+/* Redes cercanas: the bar with the state of the scan and its button, the filters and the table of access points. */
+.nearby__intro { margin: 0 0 14px; max-width: 78ch; line-height: 1.55; }
+.nearby__bar {
+  flex-direction: row; align-items: center; justify-content: space-between; gap: 14px 20px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.nearby__state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0; }
+.nearby__state .spinner { margin-top: 0; }
+.nearby__action { display: grid; justify-items: end; gap: 4px; text-align: right; }
+.nearby__action .button { display: inline-flex; align-items: center; gap: 8px; }
+.nearby__stale { display: flex; align-items: center; gap: 8px; background: var(--warn-soft); border-color: var(--warn);
+  color: var(--warn-ink); }
+
+.nearby__summary { margin: 4px 0 12px; line-height: 1.5; }
+.nearby__open { color: var(--bad-ink); font-weight: 500; }
+.nearby__filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.nearby__filters .devfilters__search { flex: 1 1 260px; margin-left: 0; }
+.nearby__filters select {
+  padding: 9px 12px; border: 1px solid var(--input-line); border-radius: var(--radius-control); background: var(--input-bg);
+  color: var(--ink); font: inherit;
+}
