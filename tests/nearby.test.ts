@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { filterAccessPoints, isScanActive, isWeakSecurity, NO_FILTERS, signalBars, summarize } from '../src/nearby';
+import {
+  ago, filterAccessPoints, isScanActive, isWeakSecurity, NO_FILTERS, secondsUntil, signalBars, summarize,
+} from '../src/nearby';
 import { ap } from './nearbyFixtures';
 
 const list = [
@@ -59,5 +61,16 @@ describe('lo que se muestra de cada red', () => {
     expect(isScanActive({ status: 'RUNNING' } as never)).toBe(true);
     expect(isScanActive({ status: 'FAILED' } as never)).toBe(false);
     expect(isScanActive(null)).toBe(false);
+  });
+
+  it('cuánto falta para volver a escanear y hace cuánto fue', () => {
+    const now = new Date('2026-10-26T20:00:00Z');
+    expect(secondsUntil('2026-10-26T20:00:21Z', now)).toBe(21);
+    expect(secondsUntil('2026-10-26T19:59:00Z', now)).toBe(0);
+    expect(secondsUntil(null, now)).toBe(0);
+    expect(ago('2026-10-26T19:59:50Z', now)).toBe('hace un momento');
+    expect(ago('2026-10-26T19:45:00Z', now)).toBe('hace 15 min');
+    expect(ago('2026-10-26T17:00:00Z', now)).toBe('hace 3 h');
+    expect(ago('2026-10-24T20:00:00Z', now)).toBe('hace 2 d');
   });
 });
