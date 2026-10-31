@@ -13,7 +13,8 @@ vi.mock('../src/auth/AuthContext', () => ({ useAuth: vi.fn() }));
 vi.mock('../src/services/api', () => ({
   api: { myNetworks: vi.fn(), createMyNetwork: vi.fn(), updateMyNetwork: vi.fn(), deleteMyNetwork: vi.fn(),
          myTests: vi.fn(), saveMyTest: vi.fn(), myAgent: vi.fn(), revokeAgentKey: vi.fn(),
-         createAgentPairingCode: vi.fn(), updateAgentDevice: vi.fn(), alertPreferences: vi.fn(), updateAlertPreferences: vi.fn(), myAccount: vi.fn() },
+         createAgentPairingCode: vi.fn(), updateAgentDevice: vi.fn(), alertPreferences: vi.fn(), updateAlertPreferences: vi.fn(), myAccount: vi.fn(),
+         nearbyNetworks: vi.fn(), startScan: vi.fn(), scanHistory: vi.fn() },
 }));
 vi.mock('../src/services/speedTest', () => ({ runSpeedTest: vi.fn() }));
 
@@ -32,6 +33,10 @@ beforeEach(() => {
   vi.mocked(api.saveMyTest).mockReset();
   vi.mocked(api.myAccount).mockReset().mockResolvedValue({ username: 'ana', email: 'ana@gmail.com', phone: null });
   vi.mocked(api.myAgent).mockReset().mockResolvedValue({ key: null, online: false, latest: null, history: [], devices: [], alerts: [] });
+  vi.mocked(api.nearbyNetworks).mockReset().mockResolvedValue({ agentInstalled: false, agentOnline: false,
+    current: null, lastCompleted: null, stale: false, staleAfterMinutes: 150, nextScheduledAt: null,
+    manualAvailableAt: null, accessPoints: [] });
+  vi.mocked(api.scanHistory).mockReset().mockResolvedValue([]);
   vi.mocked(runSpeedTest).mockReset();
 });
 
