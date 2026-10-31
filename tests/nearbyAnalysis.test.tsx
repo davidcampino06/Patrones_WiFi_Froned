@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NearbyAnalysisSection } from '../src/components/NearbyAnalysisSection';
 import { api } from '../src/services/api';
+import { ApiError } from '../src/services/apiClient';
 
 vi.mock('../src/services/api', () => ({ api: { nearbyAnalysis: vi.fn() } }));
 
@@ -51,5 +52,16 @@ describe('Lectura de la IA de las redes cercanas', () => {
 
     expect(screen.getByRole('button', { name: /Analizar con IA/ })).toBeDisabled();
     expect(screen.getByText(/Cuando haya un escaneo completado/)).toBeInTheDocument();
+  });
+
+  it('un error del servidor se muestra', async () => {
+    const user = userEvent.setup();
+    vi.mocked(api.nearbyAnalysis).mockImplementation(() =>
+      Promise.reject(new ApiError(404, 'El recurso solicitado no existe.')));
+    render(<NearbyAnalysisSection networkId={1} scanId={51} />);
+
+    await user.click(screen.getByRole('button', { name: /Analizar con IA/ }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('no existe');
   });
 });
