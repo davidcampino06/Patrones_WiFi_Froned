@@ -148,4 +148,17 @@ describe('Redes cercanas', () => {
     await user.click(button);
     expect(await screen.findByRole('alert')).toHaveTextContent('Ya hay un escaneo en curso en esta red.');
   });
+
+  it('los filtros esconden filas y se pueden quitar', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    vi.mocked(api.nearbyNetworks).mockResolvedValue(panel());
+    render(<NearbyNetworksPanel network={casa} />);
+
+    await user.selectOptions(await screen.findByRole('combobox', { name: 'Filtrar por seguridad' }), 'OPEN');
+    expect(screen.getAllByRole('row')).toHaveLength(2);
+    expect(screen.getByText('Mostrando 1 de 3 puntos de acceso.')).toBeInTheDocument();
+    await user.type(screen.getByRole('searchbox', { name: 'Buscar red' }), 'no existe');
+    await user.click(screen.getByRole('button', { name: 'Quitar filtros' }));
+    expect(screen.getAllByRole('row')).toHaveLength(4);
+  });
 });
