@@ -20,5 +20,10 @@ describe('filtros de las redes cercanas', () => {
     expect(filterAccessPoints(list, { ...NO_FILTERS, query: 'tp-link' }).map((a) => a.id)).toEqual([1]);
     expect(filterAccessPoints(list, { ...NO_FILTERS, query: 'oculta' }).map((a) => a.id)).toEqual([3]);
   });
+
+  it('una señal desconocida nunca pasa un mínimo de señal', () => {
+    expect(filterAccessPoints(list, { ...NO_FILTERS, signal: 'GOOD' }).map((a) => a.id)).toEqual([1, 5]);
+    expect(filterAccessPoints(list, { ...NO_FILTERS, signal: 'FAIR' }).map((a) => a.id)).toEqual([1, 2, 5]);
+  });
 });
 
