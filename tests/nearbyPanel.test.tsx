@@ -102,4 +102,13 @@ describe('Redes cercanas', () => {
     expect(screen.getByText('Falló')).toBeInTheDocument();
     expect(screen.getByRole('table')).toBeInTheDocument();  // the last good result is still shown
   });
+
+  it('avisa cuando el resultado ya está viejo', async () => {
+    vi.mocked(api.nearbyNetworks).mockResolvedValue(panel({
+      stale: true, lastCompleted: scan({ finishedAt: '2026-10-26T16:00:00Z' }),
+    }));
+    render(<NearbyNetworksPanel network={casa} />);
+
+    expect(await screen.findByText(/pueden estar desactualizados/)).toHaveTextContent('hace 4 h');
+  });
 });
