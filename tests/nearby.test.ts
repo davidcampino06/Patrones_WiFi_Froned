@@ -32,5 +32,9 @@ describe('filtros de las redes cercanas', () => {
     expect(filterAccessPoints(list, { ...NO_FILTERS, security: 'WPA2' }).map((a) => a.id)).toEqual([1, 3]);
     expect(filterAccessPoints(list, { ...NO_FILTERS, security: 'WPA3' }).map((a) => a.id)).toEqual([5]);
   });
+
+  it('los filtros se combinan', () => {
+    expect(filterAccessPoints(list, { query: 'o', signal: 'GOOD', security: 'WPA3' }).map((a) => a.id)).toEqual([5]);
+  });
 });
 
