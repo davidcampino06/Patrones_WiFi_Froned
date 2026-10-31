@@ -1,0 +1,57 @@
+/* Redes cercanas: the bar with the state of the scan and its button, the filters and the table of access points. */
+.nearby__intro { margin: 0 0 14px; max-width: 78ch; line-height: 1.55; }
+.nearby__bar {
+  flex-direction: row; align-items: center; justify-content: space-between; gap: 14px 20px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.nearby__state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0; }
+.nearby__state .spinner { margin-top: 0; }
+.nearby__action { display: grid; justify-items: end; gap: 4px; text-align: right; }
+.nearby__action .button { display: inline-flex; align-items: center; gap: 8px; }
+.nearby__stale { display: flex; align-items: center; gap: 8px; background: var(--warn-soft); border-color: var(--warn);
+  color: var(--warn-ink); }
+
+.nearby__summary { margin: 4px 0 12px; line-height: 1.5; }
+.nearby__open { color: var(--bad-ink); font-weight: 500; }
+.nearby__filters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.nearby__filters .devfilters__search { flex: 1 1 260px; margin-left: 0; }
+.nearby__filters select {
+  padding: 9px 12px; border: 1px solid var(--input-line); border-radius: var(--radius-control); background: var(--input-bg);
+  color: var(--ink); font: inherit;
+}
+
+.nearby__table td { vertical-align: top; }
+.nearby__table tr.is-connected td { background: var(--accent-soft); }
+.nearby__name { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; font-weight: 500; overflow-wrap: anywhere; }
+.nearby__name .tag--accent { margin-left: 0; white-space: nowrap; }
+.nearby__signal { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.nearby__bars { width: 16px; height: 12px; color: var(--accent); }
+.nearby__bars .on { fill: currentColor; }
+.nearby__bars .off { fill: currentColor; opacity: .2; }
+.nearby__security { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.nearby__history { margin-top: 14px; }
+.nearby__history summary { cursor: pointer; color: var(--accent-ink); font-weight: 500; }
+.nearby__scans { display: grid; gap: 6px; margin-top: 10px; }
+.nearby__scans li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: .9rem; }
+
+/* On a phone each access point is a small card: the name on top, then signal, channel, security and history with
+   their labels (the header of the table is hidden). */
+@media (max-width: 640px) {
+  .nearby__action { justify-items: start; text-align: left; }
+  .nearby__filters select { flex: 1 1 100%; }
+  .nearby__table thead { display: none; }
+  .nearby__table, .nearby__table tbody { display: block; }
+  .nearby__table tr {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; padding: 12px 10px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .nearby__table td { display: block; padding: 0; border: 0; }
+  .nearby__table td:first-child { grid-column: 1 / -1; }
+  .nearby__table td[data-label]::before {
+    content: attr(data-label); display: block; margin-bottom: 2px; font-family: var(--font-mono); font-size: .64rem;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+  }
+  .nearby__table tr.is-connected td { background: none; }
+  .nearby__table tr.is-connected { background: var(--accent-soft); }
+}

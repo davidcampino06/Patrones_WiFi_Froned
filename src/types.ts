@@ -477,7 +477,16 @@ export interface AgentDevice {
   role?: DeviceRole | null;
   /** Model the device announces ("iPhone15,2", "Chromecast"). */
   model?: string | null;
+  /** Where its automatic name came from (agent 2.0.0); null for older agents or when it has no name. */
+  nameSource?: NameSource | null;
+  /** How well it is identified, from ALIAS (the user named it) to UNKNOWN: a guess is never shown as a fact. */
+  identification?: DeviceIdentification | null;
 }
+
+/** CONFIRMED: the device and the router say the same name; ANNOUNCED: the device said it; ROUTER: the router's DNS
+ *  said it; DNS: the network said it. */
+export type NameSource = 'CONFIRMED' | 'ANNOUNCED' | 'ROUTER' | 'DNS';
+export type DeviceIdentification = 'ALIAS' | NameSource | 'NAMED' | 'ESTIMATED' | 'UNKNOWN';
 
 export type DeviceKind = 'PHONE' | 'COMPUTER' | 'TV' | 'PRINTER' | 'CAMERA' | 'SPEAKER' | 'CONSOLE' | 'IOT';
 export type DeviceRole = 'SELF' | 'ROUTER';
@@ -614,3 +623,100 @@ export interface WeeklyReport {
   security: { latestScore: number; latestGrade: SecurityGrade; lowestScore: number } | null;
   highlights: string[];
 }
+/** Life of a scan of the nearby Wi-Fi networks. */
+export type ScanStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+export type ScanOrigin = 'MANUAL' | 'SCHEDULED';
+export type ScanFailure = 'NO_ADAPTER' | 'ADAPTER_OFF' | 'SERVICE_OFF' | 'LOCATION_PERMISSION' | 'COMMAND_FAILED'
+  | 'TIMEOUT' | 'UNREADABLE_OUTPUT' | 'UNSUPPORTED_OS' | 'AGENT_NO_RESPONSE';
+
+/** One scan; failureMessage is the sentence the backend wrote for the user. */
+export interface WifiScan {
+  id: number;
+  origin: ScanOrigin;
+  status: ScanStatus;
+  requestedAt: string;
+  startedAt: string | null;
+  finishedAt: string | null;
+  failureReason: ScanFailure | null;
+  failureMessage: string | null;
+  interfaceName: string | null;
+  scanTool: 'NETSH' | 'NMCLI' | null;
+  fresh: boolean | null;
+  networkCount: number | null;
+  accessPointCount: number | null;
+  durationMs: number | null;
+}
+
+/** A nearby access point as a scan saw it. Unknown values are null, never guessed. */
+export interface NearbyAccessPoint {
+  id: number;
+  ssid: string | null;
+  hidden: boolean;
+  bssidSuffix: string | null;
+  vendor: string | null;
+  signalPercent: number | null;
+  signalDbm: number | null;
+  channel: number | null;
+  band: '2.4' | '5' | '6' | null;
+  radioType: string | null;
+  authentication: WifiAuthentication;
+  securityLabel: string | null;
+  cipher: string | null;
+  connected: boolean;
+  firstSeenAt: string;
+  timesSeen: number;
+}
+
+/** "Redes cercanas" of one network. */
+export interface NearbyNetworks {
+  agentInstalled: boolean;
+  agentOnline: boolean;
+  current: WifiScan | null;
+  lastCompleted: WifiScan | null;
+  stale: boolean;
+  staleAfterMinutes: number;
+  nextScheduledAt: string | null;
+  manualAvailableAt: string | null;
+  accessPoints: NearbyAccessPoint[];
+}
+
+export interface WifiScanDetail {
+  scan: WifiScan;
+  accessPoints: NearbyAccessPoint[];
+}
+
+/** A fact (counted, confidence null) or an inference (a possible explanation with its confidence, 0 to 1). */
+export interface Finding {
+  code: string;
+  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  title: string;
+  evidence: string;
+  recommendation: string | null;
+  confidence: number | null;
+}
+
+/** The AI reading of the last scan of the nearby networks; available false (with a message) when there is none. */
+export interface NearbyAnalysis {
+  scanId: number | null;
+  scannedAt: string | null;
+  available: boolean;
+  message: string | null;
+  facts: Finding[];
+  inferences: Finding[];
+  uncertainty: string | null;
+}
+
+/** What WiFiSense knows of the router of a network and what it can (and cannot) do with it. */
+export interface RouterInfo {
+  identified: boolean;
+  vendor: string | null;
+  model: string | null;
+  name: string | null;
+  lastSeenAt: string | null;
+  namesFromRouter: number;
+  confirmedNames: number;
+  capabilities: { code: 'READ_NAMES' | 'LIST_CLIENTS' | 'BLOCK_DEVICE' | 'CHANGE_PASSWORD'; label: string;
+    status: 'AVAILABLE' | 'UNAVAILABLE'; detail: string }[];
+  steps: string[];
+}
+

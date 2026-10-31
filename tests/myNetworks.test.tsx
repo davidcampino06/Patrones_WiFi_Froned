@@ -13,7 +13,8 @@ vi.mock('../src/auth/AuthContext', () => ({ useAuth: vi.fn() }));
 vi.mock('../src/services/api', () => ({
   api: { myNetworks: vi.fn(), createMyNetwork: vi.fn(), updateMyNetwork: vi.fn(), deleteMyNetwork: vi.fn(),
          myTests: vi.fn(), saveMyTest: vi.fn(), myAgent: vi.fn(), revokeAgentKey: vi.fn(),
-         createAgentPairingCode: vi.fn(), updateAgentDevice: vi.fn(), alertPreferences: vi.fn(), updateAlertPreferences: vi.fn(), myAccount: vi.fn() },
+         createAgentPairingCode: vi.fn(), updateAgentDevice: vi.fn(), alertPreferences: vi.fn(), updateAlertPreferences: vi.fn(), myAccount: vi.fn(),
+         nearbyNetworks: vi.fn(), startScan: vi.fn(), scanHistory: vi.fn(), nearbyAnalysis: vi.fn(), myRouter: vi.fn() },
 }));
 vi.mock('../src/services/speedTest', () => ({ runSpeedTest: vi.fn() }));
 
@@ -27,11 +28,17 @@ beforeEach(() => {
     login: vi.fn(), register: vi.fn(), renew: vi.fn(), logout: vi.fn(), can: () => false,
   });
   vi.mocked(api.myNetworks).mockReset();
+  vi.mocked(api.myRouter).mockReset().mockResolvedValue({ identified: false, vendor: null, model: null, name: null,
+    lastSeenAt: null, namesFromRouter: 0, confirmedNames: 0, capabilities: [], steps: [] });
   vi.mocked(api.createMyNetwork).mockReset();
   vi.mocked(api.myTests).mockReset().mockResolvedValue([]);
   vi.mocked(api.saveMyTest).mockReset();
   vi.mocked(api.myAccount).mockReset().mockResolvedValue({ username: 'ana', email: 'ana@gmail.com', phone: null });
   vi.mocked(api.myAgent).mockReset().mockResolvedValue({ key: null, online: false, latest: null, history: [], devices: [], alerts: [] });
+  vi.mocked(api.nearbyNetworks).mockReset().mockResolvedValue({ agentInstalled: false, agentOnline: false,
+    current: null, lastCompleted: null, stale: false, staleAfterMinutes: 150, nextScheduledAt: null,
+    manualAvailableAt: null, accessPoints: [] });
+  vi.mocked(api.scanHistory).mockReset().mockResolvedValue([]);
   vi.mocked(runSpeedTest).mockReset();
 });
 
@@ -73,6 +80,15 @@ describe('Mi Wi-Fi', () => {
     expect(await screen.findByRole('heading', { name: 'Casa' })).toBeInTheDocument();
     expect(screen.getByText('300 Mbps')).toBeInTheDocument();
     expect(screen.getAllByText('1 de 3').length).toBeGreaterThan(0);
+  });
+
+  it('shows the nearby networks of the chosen network, apart from the measurement and the devices', async () => {
+    vi.mocked(api.myNetworks).mockResolvedValue([casa]);
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Redes cercanas' })).toBeInTheDocument();
+    expect(api.nearbyNetworks).toHaveBeenCalledWith(1);
+    expect(await screen.findByText(/Instala el agente WiFiSense/)).toBeInTheDocument();
   });
 
   it('adds a network and reloads the list', async () => {

@@ -1,10 +1,12 @@
 import { apiClient } from './apiClient';
 import { sealPassword } from './passwordCipher';
 import type {
-  Account, AgentDevice, AgentOverview, DeviceSessionHistory, AgentPairingCode, AlertPreferences, AiModelOverview, AiModelVersion, AiPrediction, AiTrainingStatus, Alert, AlertStatus, AnalysisResult, AnalysisType, AnomalyCauseCount, AuthResponse,
-  ConnectionTest, ConnectionTestInput, DashboardSummary, DataSourceType, Device, HomeNetwork, HomeNetworkInput, IdentifyMode, Location,
-  Measurement, Network, NetworkQuality, NetworkReport, WeeklyReport, ProtocolStatistic, SensorStatus, StaffRole, Strategy, SystemStatus,
-  TeamNetworks, TrafficSession, User, Zone,
+  Account, AgentDevice, AgentOverview, DeviceSessionHistory, AgentPairingCode, AlertPreferences, AiModelOverview,
+  AiModelVersion, AiPrediction, AiTrainingStatus, Alert, AlertStatus, AnalysisResult, AnalysisType,
+  AnomalyCauseCount, AuthResponse, ConnectionTest, ConnectionTestInput, NearbyNetworks, WifiScan, WifiScanDetail,
+  DashboardSummary, DataSourceType, Device, HomeNetwork, HomeNetworkInput, IdentifyMode, Location, Measurement,
+  Network, NetworkQuality, NetworkReport, WeeklyReport, ProtocolStatistic, SensorStatus, StaffRole, Strategy,
+  SystemStatus, TeamNetworks, TrafficSession, User, Zone, NearbyAnalysis, RouterInfo,
 } from '../types';
 
 export interface NetworkInput {
@@ -72,6 +74,19 @@ export const api = {
   /** "Which device is this?": the agent reports every minute for the next ten minutes. */
   identifyAgentDevice: (networkId: number) => apiClient.post<IdentifyMode>(`/api/my/networks/${networkId}/agent/identify`),
   revokeAgentKey: (networkId: number) => apiClient.delete(`/api/my/networks/${networkId}/agent/key`),
+  /** Nearby Wi-Fi networks seen by the agent: last result, scan in progress and whether it is out of date. */
+  nearbyNetworks: (networkId: number) => apiClient.get<NearbyNetworks>(`/api/my/networks/${networkId}/nearby`),
+  /** "Escanear ahora": the scan waits for the agent; follow it with nearbyNetworks. */
+  startScan: (networkId: number) => apiClient.post<WifiScan>(`/api/my/networks/${networkId}/scans`),
+  scanHistory: (networkId: number, limit = 10) =>
+    apiClient.get<WifiScan[]>(`/api/my/networks/${networkId}/scans`, { limit }),
+  scanDetail: (networkId: number, scanId: number) =>
+    apiClient.get<WifiScanDetail>(`/api/my/networks/${networkId}/scans/${scanId}`),
+  /** Facts and inferences of the AI about the last completed scan. */
+  nearbyAnalysis: (networkId: number) =>
+    apiClient.get<NearbyAnalysis>(`/api/my/networks/${networkId}/nearby/analysis`),
+  /** The router of a Mi Wi-Fi network: what is known of it and what WiFiSense cannot do with it. */
+  myRouter: (networkId: number) => apiClient.get<RouterInfo>(`/api/my/networks/${networkId}/router`),
 
   dashboard: () => apiClient.get<DashboardSummary>('/api/dashboard/summary'),
   /** Real home networks of the end users (ADMIN and ANALYST). */
@@ -97,6 +112,8 @@ export const api = {
   updateSensorDevice: (networkId: number, fingerprint: string, change: { label?: string | null; authorized?: boolean }) =>
     apiClient.put<AgentDevice>(`/api/networks/${networkId}/sensor/devices/${fingerprint}`, change),
   identifySensorDevice: (networkId: number) => apiClient.post<IdentifyMode>(`/api/networks/${networkId}/sensor/identify`),
+  /** The router of a team network, as its sensor sees it. */
+  teamRouter: (networkId: number) => apiClient.get<RouterInfo>(`/api/networks/${networkId}/sensor/router`),
   sensorDeviceSessions: (networkId: number, fingerprint: string, days = 7) =>
     apiClient.get<DeviceSessionHistory>(`/api/networks/${networkId}/sensor/devices/${fingerprint}/sessions`, { days }),
 
