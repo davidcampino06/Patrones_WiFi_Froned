@@ -80,6 +80,15 @@ describe('Mi Wi-Fi', () => {
     expect(screen.getAllByText('1 de 3').length).toBeGreaterThan(0);
   });
 
+  it('shows the nearby networks of the chosen network, apart from the measurement and the devices', async () => {
+    vi.mocked(api.myNetworks).mockResolvedValue([casa]);
+    renderPage();
+
+    expect(await screen.findByRole('heading', { name: 'Redes cercanas' })).toBeInTheDocument();
+    expect(api.nearbyNetworks).toHaveBeenCalledWith(1);
+    expect(await screen.findByText(/Instala el agente WiFiSense/)).toBeInTheDocument();
+  });
+
   it('adds a network and reloads the list', async () => {
     vi.mocked(api.myNetworks).mockResolvedValueOnce([]).mockResolvedValueOnce([casa]);
     vi.mocked(api.createMyNetwork).mockResolvedValue(casa);
