@@ -90,4 +90,16 @@ describe('Redes cercanas', () => {
     expect(await screen.findByRole('table', { name: 'Redes cercanas' })).toBeInTheDocument();
     expect(screen.getByText('Completado')).toBeInTheDocument();
   });
+
+  it('un escaneo fallido muestra el motivo que dio el agente', async () => {
+    vi.mocked(api.nearbyNetworks).mockResolvedValue(panel({
+      current: scan({ status: 'FAILED', failureReason: 'LOCATION_PERMISSION',
+                      failureMessage: 'Windows no deja ver las redes cercanas sin el permiso de ubicación.' }),
+    }));
+    render(<NearbyNetworksPanel network={casa} />);
+
+    expect(await screen.findByText(/sin el permiso de ubicación/)).toBeInTheDocument();
+    expect(screen.getByText('Falló')).toBeInTheDocument();
+    expect(screen.getByRole('table')).toBeInTheDocument();  // the last good result is still shown
+  });
 });
