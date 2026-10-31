@@ -25,5 +25,12 @@ describe('filtros de las redes cercanas', () => {
     expect(filterAccessPoints(list, { ...NO_FILTERS, signal: 'GOOD' }).map((a) => a.id)).toEqual([1, 5]);
     expect(filterAccessPoints(list, { ...NO_FILTERS, signal: 'FAIR' }).map((a) => a.id)).toEqual([1, 2, 5]);
   });
+
+  it('filtra por seguridad: abiertas, débiles, WPA2 y WPA3', () => {
+    expect(filterAccessPoints(list, { ...NO_FILTERS, security: 'OPEN' }).map((a) => a.id)).toEqual([2]);
+    expect(filterAccessPoints(list, { ...NO_FILTERS, security: 'WEAK' }).map((a) => a.id)).toEqual([4]);
+    expect(filterAccessPoints(list, { ...NO_FILTERS, security: 'WPA2' }).map((a) => a.id)).toEqual([1, 3]);
+    expect(filterAccessPoints(list, { ...NO_FILTERS, security: 'WPA3' }).map((a) => a.id)).toEqual([5]);
+  });
 });
 
