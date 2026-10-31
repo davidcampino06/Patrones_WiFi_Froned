@@ -112,6 +112,8 @@ export const api = {
   updateSensorDevice: (networkId: number, fingerprint: string, change: { label?: string | null; authorized?: boolean }) =>
     apiClient.put<AgentDevice>(`/api/networks/${networkId}/sensor/devices/${fingerprint}`, change),
   identifySensorDevice: (networkId: number) => apiClient.post<IdentifyMode>(`/api/networks/${networkId}/sensor/identify`),
+  /** The router of a team network, as its sensor sees it. */
+  teamRouter: (networkId: number) => apiClient.get<RouterInfo>(`/api/networks/${networkId}/sensor/router`),
   sensorDeviceSessions: (networkId: number, fingerprint: string, days = 7) =>
     apiClient.get<DeviceSessionHistory>(`/api/networks/${networkId}/sensor/devices/${fingerprint}/sessions`, { days }),
 
