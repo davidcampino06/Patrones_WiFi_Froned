@@ -1,8 +1,9 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NearbyNetworksPanel } from '../src/components/NearbyNetworksPanel';
 import { api } from '../src/services/api';
+import { ApiError } from '../src/services/apiClient';
 import type { HomeNetwork, NearbyNetworks, WifiScan } from '../src/types';
 import { ap } from './nearbyFixtures';
 
@@ -133,5 +134,18 @@ describe('Redes cercanas', () => {
     expect(await screen.findByText('Podrás escanear de nuevo en 12 s.')).toBeInTheDocument();
     await act(() => vi.advanceTimersByTimeAsync(13_000));
     expect(screen.getByRole('button', { name: /Escanear ahora/ })).toBeEnabled();
+  });
+
+  it('si el servidor rechaza el escaneo se muestra su motivo', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    vi.mocked(api.nearbyNetworks).mockResolvedValue(panel());
+    vi.mocked(api.startScan).mockRejectedValue(new ApiError(409, 'Ya hay un escaneo en curso en esta red.'));
+    render(<NearbyNetworksPanel network={casa} />);
+
+    // the button is there (disabled, «Cargando…») before the panel arrives: click it once it can be used
+    const button = await screen.findByRole('button', { name: /Escanear ahora/ });
+    await waitFor(() => expect(button).toBeEnabled());
+    await user.click(button);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Ya hay un escaneo en curso en esta red.');
   });
 });
