@@ -28,5 +28,13 @@ describe('Tu router', () => {
     expect(screen.queryByRole('button', { name: /bloquear|contraseña/i })).not.toBeInTheDocument();
     expect(screen.getByText('Cómo hacerlo en tu router')).toBeInTheDocument();
   });
+
+  it('sin router identificado lo dice', async () => {
+    render(<RouterPanel load={() => Promise.resolve({ ...info, identified: false, vendor: null, model: null })}
+                        deps={[2]} title="Router de la red" />);
+
+    expect(await screen.findByText('El agente todavía no ha identificado el router de esta red.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Router de la red' })).toBeInTheDocument();
+  });
 });
 
