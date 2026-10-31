@@ -10,6 +10,7 @@ import { api } from '../services/api';
 import type { HomeNetwork, NearbyAccessPoint, WifiScan } from '../types';
 import { authenticationLabel } from './AgentPanel';
 import { Icon } from './Icon';
+import { NearbyAnalysisSection } from './NearbyAnalysisSection';
 
 /** While a scan waits or runs the panel asks every few seconds; it stops asking after a while. */
 const FOLLOW_MS = 4_000;
@@ -122,6 +123,7 @@ export function NearbyNetworksPanel({ network }: { network: HomeNetwork }) {
       {nearby.loading && !data && <p className="notice" aria-busy="true">Cargando…</p>}
       {data && <NearbyResult networks={data.accessPoints} scan={data.lastCompleted} filters={filters}
                              onFilters={setFilters} now={now} agentInstalled={data.agentInstalled} />}
+      {data?.agentInstalled && <NearbyAnalysisSection networkId={network.id} scanId={data.lastCompleted?.id ?? null} />}
 
       <details className="nearby__history" onToggle={(e) => setHistoryOpen((e.target as HTMLDetailsElement).open)}>
         <summary>Historial de escaneos</summary>
