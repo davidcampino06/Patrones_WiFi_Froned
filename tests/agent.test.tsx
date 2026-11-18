@@ -9,6 +9,8 @@ import { api } from '../src/services/api';
 import type { AgentChannel, AgentDevice, AgentOverview, HomeNetwork } from '../src/types';
 
 vi.mock('../src/auth/AuthContext', () => ({ useAuth: vi.fn() }));
+// after a test the page keeps pinging every second (Avance 32): here the pings never answer
+vi.mock('../src/services/livePing', () => ({ pingOnce: vi.fn(() => new Promise(() => undefined)) }));
 vi.mock('../src/services/api', () => ({
   api: { myAgent: vi.fn(), revokeAgentKey: vi.fn(), createAgentPairingCode: vi.fn(),
          updateAgentDevice: vi.fn(), alertPreferences: vi.fn(), updateAlertPreferences: vi.fn(), myNetworks: vi.fn(),

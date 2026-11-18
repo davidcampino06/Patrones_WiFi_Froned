@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { formatDateTime, formatNumber } from '../format';
 import { errorMessage, useApi } from '../hooks/useApi';
+import { liveReading, type LiveReading } from '../liveQuality';
 import { gradeStatus, metricOf, metricStatus, metricWord } from '../quality';
 import { api } from '../services/api';
+import { pingOnce } from '../services/livePing';
 import { runSpeedTest, type SpeedTestPhase } from '../services/speedTest';
-import type { ConnectionTest, HomeNetwork } from '../types';
+import type { ConnectionTest, HomeNetwork, LivePoint, LiveView } from '../types';
 import { Gauge } from './Gauge';
 import { Icon } from './Icon';
 
@@ -17,22 +19,123 @@ const PHASE_TEXT: Record<Phase, string> = {
   grading: 'Calificando tu conexión…',
 };
 
-/** Dashboard of one network of the user: the quality gauge, the connection test and what the result means. */
-export function ConnectionPanel({ network, onTested }: { network: HomeNetwork; onTested?: (test: ConnectionTest) => void }) {
+/** After a test the page keeps measuring every second (Avance 32). */
+export const LIVE_TICK_MS = 1000;
+/** Round trips the live latency and jitter are computed from (the last 8 seconds). */
+export const LIVE_WINDOW = 8;
+/** It stops by itself after 10 minutes, so a forgotten tab does not keep measuring all day. */
+export const LIVE_LIMIT_MS = 10 * 60 * 1000;
+const USAGE_POLL_MS = 2000;
+const MAX_ERRORS = 3;
+
+type Usage = (after: number) => Promise<LiveView>;
+
+/**
+ * Dashboard of one network of the user: the quality gauge, the connection test and what the result means.
+ *
+ * Avance 32: «Probar mi conexión» measures everything once (speed included) and then keeps going: every second a
+ * tiny ping measures the latency and the jitter again, and the three gauges move with them. The quality of each
+ * second joins that latency and jitter with the speed of the test (see liveQuality.ts). With the agent installed,
+ * the speed card also shows what this computer downloads and uploads at this moment. It stops with «Detener», after
+ * 10 minutes, or while the tab is hidden.
+ */
+export function ConnectionPanel({ network, onTested, usage }: {
+  network: HomeNetwork; onTested?: (test: ConnectionTest) => void;
+  /** What the agent reads at this moment (download and upload of this computer); optional. */
+  usage?: Usage;
+}) {
   const history = useApi(() => api.myTests(network.id), [network.id]);
   const [phase, setPhase] = useState<Phase | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [watching, setWatching] = useState(false);
+  const [reading, setReading] = useState<LiveReading | null>(null);
+  const [now, setNow] = useState<LivePoint | null>(null);
+  const [stopped, setStopped] = useState<string | null>(null);
   const latest = history.data?.[0] ?? null;
   const quality = latest?.quality ?? null;
+  const latestRef = useRef(latest);
+  latestRef.current = latest;
+  const usageRef = useRef(usage);
+  usageRef.current = usage;
+
+  useEffect(() => {
+    if (!watching) return undefined;
+    let active = true;
+    let busy = false;
+    let errors = 0;
+    let seq = 0;
+    const rtts: number[] = [];
+    const startedAt = Date.now();
+
+    function stop(why: string) {
+      active = false;
+      window.clearInterval(pings);
+      window.clearInterval(reads);
+      setWatching(false);
+      setStopped(why);
+    }
+
+    async function ping() {
+      if (!active || busy || document.hidden) return;
+      if (Date.now() - startedAt >= LIVE_LIMIT_MS) {
+        stop('La medición en vivo se detuvo sola después de 10 minutos.');
+        return;
+      }
+      busy = true;
+      try {
+        const rtt = await pingOnce();
+        if (!active) return;
+        errors = 0;
+        rtts.push(rtt);
+        if (rtts.length > LIVE_WINDOW) rtts.shift();
+        if (rtts.length >= 2) setReading(liveReading(rtts, latestRef.current));
+      } catch {
+        if (!active) return;
+        errors += 1;
+        if (errors >= MAX_ERRORS) stop('Se perdió la conexión con el servidor: la medición en vivo se detuvo.');
+      } finally {
+        busy = false;
+      }
+    }
+
+    async function read() {
+      const load = usageRef.current;
+      if (!active || !load || document.hidden) return;
+      try {
+        const view = await load(seq);
+        if (!active) return;
+        seq = view.lastSeq;
+        const point = view.state === 'LIVE' ? view.points[view.points.length - 1] : undefined;
+        if (point) setNow(point);
+      } catch {
+        // the usage is extra: without the agent the gauges keep moving
+      }
+    }
+
+    const pings = window.setInterval(() => void ping(), LIVE_TICK_MS);
+    const reads = window.setInterval(() => void read(), USAGE_POLL_MS);
+    void ping();
+    void read();
+    return () => {
+      active = false;
+      window.clearInterval(pings);
+      window.clearInterval(reads);
+    };
+  }, [watching]);
 
   async function run() {
     setError(null);
+    setStopped(null);
+    setWatching(false);  // the live pings would disturb the measurement
     try {
       const measured = await runSpeedTest(setPhase);
       setPhase('grading');
       const saved = await api.saveMyTest(network.id, measured);
       onTested?.(saved);
       history.reload();
+      setReading(null);
+      setNow(null);
+      setWatching(true);
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -40,22 +143,40 @@ export function ConnectionPanel({ network, onTested }: { network: HomeNetwork; o
     }
   }
 
-  const caption = quality?.gradeLabel ?? (latest ? 'Sin calificación' : 'Sin pruebas');
-  const latency = metricOf(quality, 'latency');
-  const jitter = metricOf(quality, 'jitter');
+  function stopWatching() {
+    setWatching(false);
+    setStopped(null);
+  }
+
+  const live = watching ? reading : null;
+  const caption = live?.quality ? `${live.quality.gradeLabel} · en vivo`
+    : quality?.gradeLabel ?? (latest ? 'Sin calificación' : 'Sin pruebas');
+  const latency = live ? live.latency : metricOf(quality, 'latency');
+  const jitter = live ? live.jitter : metricOf(quality, 'jitter');
+  const score = live?.quality?.score ?? quality?.score ?? null;
+  const latencyMs = live ? live.latencyMs : latest?.latencyMs ?? null;
+  const jitterMs = live ? live.jitterMs : latest?.jitterMs ?? null;
 
   return (
     <div className="dash">
       <section className="dash__card dash__card--hero" aria-labelledby="quality-title">
         <h2 className="dash__title" id="quality-title"><Icon name="wifi" size={18} /> Calidad de «{network.name}»</h2>
-        <Gauge percent={quality?.score ?? null} value={quality ? String(quality.score) : '—'} label="Calidad de 0 a 100"
-               status={gradeStatus(latest?.qualityGrade)} caption={caption} />
+        <Gauge percent={score} value={score !== null ? String(score) : '—'} label="Calidad de 0 a 100"
+               status={gradeStatus(live?.quality?.grade ?? latest?.qualityGrade)} caption={caption} />
         <button className="button button--big" onClick={run} disabled={phase !== null}>
           <Icon name="play" size={16} /> {phase ? 'Probando…' : 'Probar mi conexión'}
         </button>
         <p className="muted small" role="status" aria-live="polite">
-          {phase ? PHASE_TEXT[phase] : 'Mide tu conexión hasta el servidor de WiFiSense; usa como máximo 16 MB de datos.'}
+          {phase ? PHASE_TEXT[phase]
+            : watching ? 'Midiendo en vivo: la latencia y el jitter se actualizan cada segundo; la velocidad es la de la prueba.'
+              : stopped ?? 'Mide tu conexión y luego la sigue midiendo cada segundo; la prueba usa como máximo 16 MB de datos.'}
         </p>
+        {watching && (
+          <p className="dash__live">
+            <span className="dash__livedot" aria-hidden="true" /> En vivo
+            <button type="button" className="link-button" onClick={stopWatching}>Detener</button>
+          </p>
+        )}
         {error && <p className="notice notice--error" role="alert">{error}</p>}
         {latest && !quality && (
           <p className="notice">El servicio de análisis no estaba disponible: guardamos tus mediciones, pero sin calificación.</p>
@@ -68,10 +189,10 @@ export function ConnectionPanel({ network, onTested }: { network: HomeNetwork; o
       <section className="dash__card" aria-labelledby="response-title">
         <h2 className="dash__title" id="response-title"><Icon name="gauge" size={18} /> Respuesta</h2>
         <div className="dash__pair">
-          <Gauge size="sm" percent={latency?.score ?? null} value={latest ? formatNumber(latest.latencyMs, 0) : '—'}
+          <Gauge size="sm" percent={latency?.score ?? null} value={latencyMs !== null ? formatNumber(latencyMs, 0) : '—'}
                  unit="ms" label="Latencia" status={latency ? metricStatus[latency.status] : 'none'}
                  caption={latency ? metricWord[latency.status] : 'Sin datos'} />
-          <Gauge size="sm" percent={jitter?.score ?? null} value={latest ? formatNumber(latest.jitterMs, 0) : '—'}
+          <Gauge size="sm" percent={jitter?.score ?? null} value={jitterMs !== null ? formatNumber(jitterMs, 0) : '—'}
                  unit="ms" label="Jitter" status={jitter ? metricStatus[jitter.status] : 'none'}
                  caption={jitter ? metricWord[jitter.status] : 'Sin datos'} />
         </div>
@@ -79,7 +200,7 @@ export function ConnectionPanel({ network, onTested }: { network: HomeNetwork; o
 
       <section className="dash__card" aria-labelledby="speed-title">
         <h2 className="dash__title" id="speed-title"><Icon name="arrowDown" size={18} /> Velocidad</h2>
-        <Speed test={latest} contracted={network.contractedMbps} />
+        <Speed test={latest} contracted={network.contractedMbps} now={watching ? now : null} />
       </section>
 
       <section className="dash__card" aria-labelledby="uses-title">
@@ -130,7 +251,7 @@ export function ConnectionPanel({ network, onTested }: { network: HomeNetwork; o
   );
 }
 
-function Speed({ test, contracted }: { test: ConnectionTest | null; contracted: number | null }) {
+function Speed({ test, contracted, now }: { test: ConnectionTest | null; contracted: number | null; now: LivePoint | null }) {
   const ratio = test && contracted ? test.downloadMbps / contracted : null;
   return (
     <div className="tiles tiles--stack">
@@ -151,6 +272,11 @@ function Speed({ test, contracted }: { test: ConnectionTest | null; contracted: 
         <span className="tile__label"><Icon name="arrowUp" size={15} /> Subida</span>
         <strong className="tile__value">{test ? formatNumber(test.uploadMbps, 1) : '—'}{test && <small>Mbps</small>}</strong>
       </div>
+      {now && (now.downloadMbps !== null || now.uploadMbps !== null) && (
+        <p className="tile__note dash__usage">
+          Usando ahora este computador: ↓ {formatNumber(now.downloadMbps, 2, ' Mbps')} · ↑ {formatNumber(now.uploadMbps, 2, ' Mbps')}
+        </p>
+      )}
     </div>
   );
 }

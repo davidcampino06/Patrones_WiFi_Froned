@@ -10,6 +10,8 @@ import { runSpeedTest } from '../src/services/speedTest';
 import type { ConnectionTest, HomeNetwork } from '../src/types';
 
 vi.mock('../src/auth/AuthContext', () => ({ useAuth: vi.fn() }));
+// after a test the page keeps pinging every second (Avance 32): here the pings never answer
+vi.mock('../src/services/livePing', () => ({ pingOnce: vi.fn(() => new Promise(() => undefined)) }));
 vi.mock('../src/services/api', () => ({
   api: { myNetworks: vi.fn(), createMyNetwork: vi.fn(), updateMyNetwork: vi.fn(), deleteMyNetwork: vi.fn(),
          myTests: vi.fn(), saveMyTest: vi.fn(), myAgent: vi.fn(), revokeAgentKey: vi.fn(),
