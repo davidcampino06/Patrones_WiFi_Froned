@@ -1,11 +1,13 @@
 import { BehaviorCard } from '../../components/AgentPanel';
 import { ConnectionPanel } from '../../components/ConnectionPanel';
-import { LivePanel } from '../../components/LivePanel';
 import { api } from '../../services/api';
 import { NeedsNetwork, ScreenHeader } from './common';
 import { useMiWifi } from './context';
 
-/** How the connection is doing: the test (what it can hold), «En vivo» (what is used now) and what the AI says. */
+/**
+ * How the connection is doing: «Probar mi conexión» measures it and then keeps measuring every second (Avance 32: it
+ * took the place of the separate «En vivo» panel here), and what the AI says.
+ */
 export function ConnectionScreen() {
   const { selected, agent, setLastTest } = useMiWifi();
   if (!selected) return <NeedsNetwork />;
@@ -13,10 +15,10 @@ export function ConnectionScreen() {
   return (
     <>
       <ScreenHeader title="Conexión">
-        «Probar mi conexión» mide cuánto aguanta tu internet; «En vivo», cuánto se está usando en este momento.
+        «Probar mi conexión» mide cuánto aguanta tu internet y luego sigue midiendo cada segundo.
       </ScreenHeader>
-      <ConnectionPanel key={selected.id} network={selected} onTested={setLastTest} />
-      <LivePanel key={`live-${selected.id}`} load={(after) => api.myLive(selected.id, after)} />
+      <ConnectionPanel key={selected.id} network={selected} onTested={setLastTest}
+                       usage={(after) => api.myLive(selected.id, after)} />
       {latest && <div className="dash miwifi__single"><BehaviorCard latest={latest} /></div>}
     </>
   );

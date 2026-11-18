@@ -6,8 +6,9 @@ const FUNCTIONS: { icon: IconName; title: string; text: string }[] = [
   { icon: 'gauge', title: 'Medición de tu conexión',
     text: 'Latencia, pérdida y velocidad de tu propia conexión, medidas por el agente o por la prueba del navegador.' },
   { icon: 'history', title: 'En vivo',
-    text: 'Cada 2 segundos, lo que el computador del agente baja y sube en ese momento y su latencia. Es el uso de '
-      + 'ese momento, no la capacidad de la conexión, y solo de ese computador.' },
+    text: 'Después de «Probar mi conexión», la latencia y el jitter cada segundo; con el agente, también lo que su '
+      + 'computador baja y sube en ese momento. Ese uso es el de ese momento, no la capacidad de la conexión, y solo de '
+      + 'ese computador.' },
   { icon: 'devices', title: 'Equipos de la red',
     text: 'Los equipos que el agente alcanza a ver en tu red, con el nombre que se pudo saber (o «desconocido»).' },
   { icon: 'shield', title: 'Captura técnica',

@@ -58,7 +58,12 @@ protocolo (UDP, TCP, ICMP…) se muestra con los mismos medidores circulares, de
   subida una prueba corta más una mayor que dura unos 2 segundos (máximo 8 MB cada una). El resultado se guarda y la
   IA lo califica: calidad, para qué alcanza (videollamadas, video HD/4K, juegos) y consejos. Mide la conexión hasta
   el servidor de WiFiSense, no solo el Wi-Fi; la señal o el canal requieren el agente.
-- **En vivo** (`LivePanel`, Avance 26; en Mi Wi-Fi y en el panel del sensor): con **«Ver en vivo»**, cada 2 segundos lo
+  **Después de la prueba sigue midiendo cada segundo** (Avance 32): un ping diminuto (sin datos de prueba) mide otra
+  vez la latencia y el jitter, y los tres medidores se mueven. La calidad de cada segundo junta esa latencia y ese
+  jitter con la velocidad de la prueba (medirla cada segundo bajaría megas cada vez), con las mismas reglas de la IA
+  (`src/liveQuality.ts`, igual que `app/quality.py`). Con el agente, la tarjeta de velocidad dice también lo que este
+  computador baja y sube en ese momento. Se detiene con «Detener», a los 10 minutos o con la pestaña oculta.
+- **En vivo** (`LivePanel`, Avance 26; en el panel del sensor; en Mi Wi-Fi quedó dentro de «Probar mi conexión»): con **«Ver en vivo»**, cada 2 segundos lo
   que el computador del agente baja y sube en ese momento, la latencia hasta el router y hasta internet y la señal, con
   dos gráficas de los últimos 5 minutos y qué significa el último minuto (por ejemplo, si la demora empieza antes o
   después del router). Es el uso de ese momento, no la capacidad (eso lo mide «Probar mi conexión»), y no gasta datos
@@ -77,7 +82,7 @@ protocolo (UDP, TCP, ICMP…) se muestra con los mismos medidores circulares, de
   el marco (`MiWifiLayout`) tiene el saludo, la red elegida y un menú; cada cosa tiene su pantalla y su dirección, así
   que el botón Atrás y un enlace funcionan. **Resumen** muestra una tarjeta por pantalla con lo más importante (la
   calidad, cuántos equipos hay de cada tipo, el puntaje de seguridad, los avisos) y al tocarla lleva a esa pantalla.
-  **Conexión**: «Probar mi conexión», En vivo y qué dice la IA. **Seguridad**: puntaje, vulnerabilidades y qué hacer,
+  **Conexión**: «Probar mi conexión» (que sigue midiendo cada segundo) y qué dice la IA. **Seguridad**: puntaje, vulnerabilidades y qué hacer,
   datos del Wi-Fi, mejor canal y el router. **Avisos**: cada aviso una sola vez con cuántas veces pasó («×6») y los
   avisos por correo. **Ajustes**: las redes (hasta 3), el agente (instalarlo, su estado y desconectarlo) y la cuenta.
   El aviso de un equipo nuevo o no autorizado aparece arriba en todas las pantallas. Los datos del agente se cargan
@@ -236,7 +241,7 @@ Administrador además registra redes).
 npm install
 cp .env.example .env        # VITE_API_URL=http://localhost:8080
 npm run dev                 # http://localhost:5173
-npm test                    # 297 pruebas
+npm test                    # 306 pruebas
 npm run build               # tipos + build de producción en dist/
 ```
 

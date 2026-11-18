@@ -13,7 +13,9 @@
 .field input:focus, .field select:focus, .password input:focus, .dash__select:focus {
   outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft);
 }
-.field select option, .dash__select option { background: var(--surface-solid); color: var(--ink); }
+/* Every list: the open options keep the colors of the theme (in the dark one, Windows showed white options with
+   white letters except the chosen one) */
+select option, select optgroup { background: var(--surface-solid); color: var(--ink); }
 .list select { padding: 4px 6px; border-radius: var(--radius-small); }
 .dash__select { padding: 6px 10px; max-width: 100%; }
 
