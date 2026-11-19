@@ -1,7 +1,7 @@
 # WiFiSense-frontend
 
 Interfaz web de WiFiSense en React + TypeScript. Muestra el estado de las redes, mediciones, historial, análisis,
-anomalías, alertas y reportes. Tiene dos áreas: la del **equipo** (Administrador, Analista y Observador, máximo 3
+anomalías, alertas y reportes. Tiene dos áreas: la del **equipo** (Administrador y Analista, máximo 3
 cuentas creadas por el administrador) y la de los **usuarios finales**, que se registran solos y solo ven su propia
 conexión.
 
@@ -155,7 +155,7 @@ protocolo (UDP, TCP, ICMP…) se muestra con los mismos medidores circulares, de
   viven solo en la pestaña (`sessionStorage`).
 - **Redes de usuarios (ADMIN y ANALYST):** el panel del equipo con datos reales: usuarios, agentes conectados, redes
   en riesgo y con anomalías, y una tabla de cada red con su último reporte. Nada de sus equipos; el analista ve el
-  usuario enmascarado. Un VIEWER no la ve.
+  usuario enmascarado.
 - **Diseño (Avance 19):** lienzo casi negro con un solo color de señal, el violeta; tarjetas planas de línea fina,
   sin sombras; Inter, JetBrains Mono para las etiquetas sello y Lora itálica para los títulos grandes. Fondo animado
   (`NetworkBackdrop`): ondas y una red de nodos con paquetes que, al llegar, se expanden en anillos como una señal
@@ -166,8 +166,24 @@ protocolo (UDP, TCP, ICMP…) se muestra con los mismos medidores circulares, de
   `src/styles/tokens.css`) y la elección se recuerda en el navegador. El tema nuevo entra como una **ola suave** que
   sale del botón (view transitions con un borde difuminado), en vez de poner toda la pantalla blanca o negra de golpe;
   los navegadores sin view transitions funden los colores y con «reducir movimiento» el cambio es inmediato.
-Las acciones se muestran según el rol (Observador consulta; Analista recolecta, analiza y gestiona alertas;
-Administrador además registra redes).
+Las acciones se muestran según el rol (Analista recolecta, analiza y gestiona alertas; Administrador además registra
+redes, sensores y cuentas).
+
+## Un panel para cada rol (Avance 33)
+
+El equipo tiene dos roles; el observador de solo lectura ya no existe (el backend tampoco lo acepta). Al entrar, cada
+uno ve su propio panel y un menú ordenado por su trabajo (`src/teamMenu.ts`):
+
+| Rol | Panel | Menú |
+|---|---|---|
+| **Administrador** | «Administración»: redes de la sede con el estado de su sensor, cuentas del equipo y cupos libres, el modelo de IA en uso y las mediciones reales para entrenarlo, las operaciones sensibles recientes (auditoría), las redes reales de los usuarios y los servicios | **Gestión** (Panel, Usuarios, Redes, Dispositivos, Capturas técnicas, Auditoría, Modelo de IA) y **Monitoreo y análisis** |
+| **Analista** | «Panel de análisis»: salud de una red con **Analizar con IA** ahí mismo, alertas por atender con Reconocer y Resolver, anomalías y sus causas más frecuentes, actividad, redes reales de los usuarios y servicios | **Monitoreo** (Panel, Redes, Dispositivos, Mediciones, Historial) y **Análisis** (Análisis, Anomalías, Alertas, Reportes, Modelo de IA, Redes de usuarios) |
+
+- El panel de cada rol solo pide al backend lo que ese rol puede ver: el analista nunca consulta cuentas ni auditoría.
+- Los dos conteos de equipos ya no se confunden: «Equipos en esta medición» (lo que vio el sensor de la red elegida) y
+  «Equipos registrados» (todos los de las redes del equipo).
+- Una sesión guardada con el rol retirado se cierra en vez de abrirse a medias; la auditoría vieja que lo menciona dice
+  «Observador (rol retirado)».
 
 ## Inteligencia artificial (equipo)
 
@@ -241,7 +257,7 @@ Administrador además registra redes).
 npm install
 cp .env.example .env        # VITE_API_URL=http://localhost:8080
 npm run dev                 # http://localhost:5173
-npm test                    # 306 pruebas
+npm test                    # 318 pruebas
 npm run build               # tipos + build de producción en dist/
 ```
 
