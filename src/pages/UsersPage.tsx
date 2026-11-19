@@ -11,7 +11,7 @@ import { ApiError } from '../services/apiClient';
 import type { StaffRole } from '../types';
 
 const MAX_USERS = 3;
-const ROLE_LABEL: Record<StaffRole, string> = { ADMIN: 'Administrador', ANALYST: 'Analista', VIEWER: 'Observador' };
+const ROLE_LABEL: Record<StaffRole, string> = { ADMIN: 'Administrador', ANALYST: 'Analista' };
 
 export function UsersPage() {
   const { user: current } = useAuth();

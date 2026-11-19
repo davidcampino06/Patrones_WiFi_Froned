@@ -31,8 +31,11 @@ export const statusLabel: Record<string, string> = {
 };
 
 export const roleLabel: Record<Role, string> = {
-  ADMIN: 'Administrador', ANALYST: 'Analista', VIEWER: 'Observador', USER: 'Usuario',
+  ADMIN: 'Administrador', ANALYST: 'Analista', USER: 'Usuario',
 };
+
+/** Roles that no longer exist but still appear in the audit (its rows cannot change). */
+export const pastRoleLabel: Record<string, string> = { VIEWER: 'Observador (rol retirado)' };
 
 /** Probable cause of an anomaly, as the AI diagnoses it. */
 export const anomalyTypeLabel: Record<AnomalyCauseCount['anomalyType'], string> = {

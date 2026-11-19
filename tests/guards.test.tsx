@@ -41,7 +41,7 @@ describe('route guards', () => {
   });
 
   it('send team members to their panel', () => {
-    signedInAs('VIEWER');
+    signedInAs('ANALYST');
     renderAt('/mi-wifi');
     expect(screen.getByText('Panel del equipo')).toBeInTheDocument();
   });
@@ -52,15 +52,8 @@ describe('route guards', () => {
     expect(screen.getByText('Redes de usuarios')).toBeInTheDocument();
   });
 
-  it('keep a viewer away from the users\' real networks', () => {
-    signedInAs('VIEWER');
-    renderAt('/user-networks');
-    expect(screen.getByText('Panel del equipo')).toBeInTheDocument();
-    expect(screen.queryByText('Redes de usuarios')).not.toBeInTheDocument();
-  });
-
-  it.each(['ANALYST', 'VIEWER'] as const)('keep a %s away from the team accounts', (role) => {
-    signedInAs(role);
+  it('keep an analyst away from the team accounts', () => {
+    signedInAs('ANALYST');
     renderAt('/users');
     expect(screen.getByText('Panel del equipo')).toBeInTheDocument();
     expect(screen.queryByText('Usuarios del equipo')).not.toBeInTheDocument();

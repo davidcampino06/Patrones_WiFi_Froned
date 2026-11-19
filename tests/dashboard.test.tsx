@@ -45,7 +45,7 @@ const quality: NetworkQuality = {
 };
 
 beforeEach(() => {
-  signedInAs('VIEWER');
+  signedInAs('ANALYST');
   vi.mocked(api.teamNetworks).mockReset().mockResolvedValue(team);
   vi.mocked(api.dashboard).mockResolvedValue(summary);
   vi.mocked(api.systemStatus).mockResolvedValue(status);
@@ -92,20 +92,11 @@ describe('Panel del equipo', () => {
   });
 
   it('shows the real networks of the users to an administrator or analyst', async () => {
-    signedInAs('ANALYST');
     renderPage();
 
     const card = (await screen.findByRole('heading', { name: /Redes reales de los usuarios/ })).closest('section')!;
     expect(await within(card).findByText('12')).toBeInTheDocument();
     expect(within(card).getByText('de 6 instalados')).toBeInTheDocument();
     expect(within(card).getByRole('link', { name: 'Ver todas' })).toHaveAttribute('href', '/user-networks');
-  });
-
-  it('a viewer does not even ask for them', async () => {
-    renderPage();
-
-    expect(await screen.findByRole('img', { name: /Calidad de 0 a 100/ })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: /Redes reales de los usuarios/ })).not.toBeInTheDocument();
-    expect(api.teamNetworks).not.toHaveBeenCalled();
   });
 });

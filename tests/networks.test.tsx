@@ -128,7 +128,7 @@ describe('Redes del equipo con sensor', () => {
   it('shows a connected sensor and only an admin can remove it', async () => {
     vi.mocked(api.networks).mockResolvedValue([lab]);
     vi.mocked(api.sensor).mockResolvedValue(online);
-    signedInAs('VIEWER');
+    signedInAs('ANALYST');
     renderPage();
 
     const row = (await screen.findByText('Lab-Redes')).closest('tr')!;
@@ -137,7 +137,7 @@ describe('Redes del equipo con sensor', () => {
     const panel = await screen.findByRole('region', { name: 'Sensor de Lab-Redes' });
     await waitFor(() => expect(within(panel).getByText(/1\.4\.0 · Windows/)).toBeInTheDocument());
     expect(within(panel).queryByRole('button', { name: /Quitar sensor|Conectar sensor|Reinstalar/ })).not.toBeInTheDocument();
-    // what the sensor sees, as in Mi Wi-Fi (by category), but a viewer cannot block a device
+    // what the sensor sees, as in Mi Wi-Fi (by category), but an analyst cannot block a device
     await userEvent.click(await within(panel).findByRole('link', { name: /Computadores: 1/ }));
     expect(await within(panel).findByText('PC-Lab')).toBeInTheDocument();
     expect(within(panel).getByText('El router expone su página web.')).toBeInTheDocument();

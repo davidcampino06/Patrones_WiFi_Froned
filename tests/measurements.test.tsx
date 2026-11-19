@@ -18,7 +18,7 @@ const traffic: ProtocolStatistic[] = [
 
 beforeEach(() => {
   vi.mocked(useAuth).mockReturnValue({
-    user: { id: 1, username: 'equipo', role: 'VIEWER' }, ready: true, login: vi.fn(), register: vi.fn(), renew: vi.fn(),
+    user: { id: 1, username: 'equipo', role: 'ANALYST' }, ready: true, login: vi.fn(), register: vi.fn(), renew: vi.fn(),
     logout: vi.fn(), can: () => false,
   });
   vi.mocked(api.networks).mockResolvedValue([{ id: 7, ssid: 'WIFI_UCC_ESTUDIANTES', zoneName: 'Biblioteca', dataSourceType: 'AGENT' } as never]);
