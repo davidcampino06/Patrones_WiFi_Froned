@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { DataState } from '../components/DataState';
 import { PageHeader } from '../components/PageHeader';
-import { formatDateTime, roleLabel } from '../format';
+import { formatDateTime, pastRoleLabel, roleLabel } from '../format';
 import { useApi } from '../hooks/useApi';
 import { api } from '../services/api';
 import type { AuditEvent, AuditOutcome, RetentionPolicy } from '../types';
@@ -9,7 +9,7 @@ import type { AuditEvent, AuditOutcome, RetentionPolicy } from '../types';
 const PAGE_SIZE = 25;
 
 export const outcomeLabel: Record<AuditOutcome, string> = { SUCCESS: 'Hecho', DENIED: 'Sin permiso', FAILED: 'Falló' };
-const OUTCOME_TONE: Record<AuditOutcome, 'good' | 'bad' | 'warn'> = { SUCCESS: 'good', DENIED: 'bad', FAILED: 'warn' };
+export const OUTCOME_TONE: Record<AuditOutcome, 'good' | 'bad' | 'warn'> = { SUCCESS: 'good', DENIED: 'bad', FAILED: 'warn' };
 const TARGET_LABEL: Record<string, string> = {
   CAPTURE: 'Captura', NETWORK: 'Red del equipo', HOME_NETWORK: 'Red de Mi Wi-Fi', USER: 'Cuenta',
 };
@@ -78,7 +78,7 @@ export function AuditPage() {
 function AuditRow({ event }: { event: AuditEvent }) {
   const who = event.actorUsername ?? (event.actorRole === 'SYSTEM' ? 'Sistema' : 'Cuenta borrada');
   const role = event.actorRole && event.actorRole !== 'SYSTEM'
-    ? roleLabel[event.actorRole as keyof typeof roleLabel] ?? event.actorRole : null;
+    ? roleLabel[event.actorRole as keyof typeof roleLabel] ?? pastRoleLabel[event.actorRole] ?? event.actorRole : null;
   return (
     <tr>
       <td className="table__nowrap">{formatDateTime(event.occurredAt)}</td>

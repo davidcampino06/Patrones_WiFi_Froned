@@ -11,7 +11,12 @@ import { ApiError } from '../services/apiClient';
 import type { StaffRole } from '../types';
 
 const MAX_USERS = 3;
-const ROLE_LABEL: Record<StaffRole, string> = { ADMIN: 'Administrador', ANALYST: 'Analista', VIEWER: 'Observador' };
+const ROLE_LABEL: Record<StaffRole, string> = { ADMIN: 'Administrador', ANALYST: 'Analista' };
+/** What each role does (Avance 33: two roles; the read-only observer no longer exists). */
+const ROLE_TASKS: Record<StaffRole, string> = {
+  ADMIN: 'Gestiona la sede: cuentas, redes y sensores, capturas, auditoría y entrenamiento de la IA.',
+  ANALYST: 'Vigila y analiza: lanza análisis, revisa anomalías, atiende alertas y ve las redes de los usuarios.',
+};
 
 export function UsersPage() {
   const { user: current } = useAuth();
@@ -49,6 +54,7 @@ export function UsersPage() {
                         <select aria-label={`Rol de ${u.username}`} value={u.role}
                                 onChange={(e) => act(() => api.changeUserRole(u.id, e.target.value as StaffRole))}>
                           {Object.entries(ROLE_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                          {!(u.role in ROLE_LABEL) && <option value={u.role} disabled>Rol retirado: asígnale otro</option>}
                         </select>
                         <button className="link-button link-button--danger"
                                 onClick={() => window.confirm(`¿Eliminar la cuenta ${u.username}?`) && act(() => api.deleteUser(u.id))}>
@@ -119,9 +125,10 @@ function CreateUserForm({ onCreated }: { onCreated: () => void }) {
       </ul>
       <div className="field">
         <label htmlFor="new-role">Rol</label>
-        <select id="new-role" value={role} onChange={(e) => setRole(e.target.value as StaffRole)}>
+        <select id="new-role" value={role} aria-describedby="role-help" onChange={(e) => setRole(e.target.value as StaffRole)}>
           {Object.entries(ROLE_LABEL).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
         </select>
+        <small id="role-help" className="muted">{ROLE_TASKS[role]}</small>
       </div>
       {errors.length > 0 && (
         <div className="notice notice--error" role="alert">

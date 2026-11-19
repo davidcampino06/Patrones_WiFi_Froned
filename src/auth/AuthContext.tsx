@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, type RegisterContact } from '../services/api';
 import { endSession, setUnauthorizedHandler, tokenStore } from '../services/apiClient';
-import type { AuthResponse, Role, User } from '../types';
+import { isKnownRole, type AuthResponse, type Role, type User } from '../types';
 
 interface AuthContextValue {
   user: User | null;
@@ -38,8 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setReady(true);
       return;
     }
-    api.me().then(setUser).catch(expire).finally(() => setReady(true));
-  }, [expire]);
+    // A session saved with a role that no longer exists (the read-only one, Avance 33) is closed, not half-opened.
+    api.me().then((me) => (isKnownRole(me.role) ? setUser(me) : logout())).catch(expire).finally(() => setReady(true));
+  }, [expire, logout]);
 
   const start = useCallback((response: AuthResponse) => {
     tokenStore.set(response.token, response.refreshToken);

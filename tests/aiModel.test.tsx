@@ -60,7 +60,7 @@ beforeEach(() => {
   vi.mocked(api.aiModel).mockReset();
   vi.mocked(api.aiTraining).mockReset().mockResolvedValue(training(0));
   vi.mocked(api.trainAi).mockReset();
-  signedInAs('VIEWER');
+  signedInAs('ANALYST');
 });
 
 describe('Modelo de IA', () => {

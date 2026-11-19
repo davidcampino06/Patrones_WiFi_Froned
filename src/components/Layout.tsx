@@ -3,34 +3,18 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { roleLabel } from '../format';
 import { ErrorBoundary } from './ErrorBoundary';
-import { Icon, type IconName } from './Icon';
+import { menuFor } from '../teamMenu';
+import { isStaff } from '../types';
+import { Icon } from './Icon';
 import { NetworkBackdrop } from './NetworkBackdrop';
 import { SiteFooter } from './SiteFooter';
 import { ThemeToggle } from './ThemeToggle';
 import { WifiLogo } from './WifiLogo';
 
-const SECTIONS: { to: string; label: string; icon: IconName }[] = [
-  { to: '/', label: 'Panel', icon: 'home' },
-  { to: '/networks', label: 'Redes', icon: 'wifi' },
-  { to: '/devices', label: 'Dispositivos', icon: 'devices' },
-  { to: '/measurements', label: 'Mediciones', icon: 'gauge' },
-  { to: '/history', label: 'Historial', icon: 'history' },
-  { to: '/analysis', label: 'Análisis', icon: 'analysis' },
-  { to: '/anomalies', label: 'Anomalías', icon: 'anomaly' },
-  { to: '/ai-model', label: 'Modelo de IA', icon: 'ai' },
-  { to: '/alerts', label: 'Alertas', icon: 'bell' },
-  { to: '/reports', label: 'Reportes', icon: 'report' },
-];
-
+/** The menu follows the role (Avance 33): each one sees its work first, grouped. */
 export function Layout() {
-  const { user, logout, can } = useAuth();
-  const sections = [
-    ...SECTIONS,
-    ...(can('ADMIN', 'ANALYST') ? [{ to: '/user-networks', label: 'Redes de usuarios', icon: 'router' as const }] : []),
-    ...(can('ADMIN') ? [{ to: '/users', label: 'Usuarios', icon: 'users' as const },
-      { to: '/captures', label: 'Capturas técnicas', icon: 'shield' as const },
-      { to: '/audit', label: 'Auditoría', icon: 'key' as const }] : []),
-  ];
+  const { user, logout } = useAuth();
+  const groups = user && isStaff(user.role) ? menuFor(user.role) : [];
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
 
@@ -48,12 +32,16 @@ export function Layout() {
             {open ? 'Cerrar' : 'Menú'}
           </button>
         </div>
-        <span className="stamp sidebar__label" aria-hidden="true">Secciones</span>
         <nav id="main-nav" aria-label="Secciones">
-          {sections.map((s) => (
-            <NavLink key={s.to} to={s.to} end={s.to === '/'} onClick={() => setOpen(false)}>
-              <Icon name={s.icon} size={18} /> {s.label}
-            </NavLink>
+          {groups.map((group) => (
+            <div key={group.title} className="sidebar__group" role="group" aria-labelledby={`menu-${group.title}`}>
+              <span className="stamp sidebar__label" id={`menu-${group.title}`}>{group.title}</span>
+              {group.items.map((s) => (
+                <NavLink key={s.to} to={s.to} end={s.to === '/'} onClick={() => setOpen(false)}>
+                  <Icon name={s.icon} size={18} /> {s.label}
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
         {user && (

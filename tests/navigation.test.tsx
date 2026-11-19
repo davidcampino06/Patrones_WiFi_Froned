@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { useAuth } from '../src/auth/AuthContext';
@@ -27,6 +27,18 @@ describe('menú del equipo', () => {
     as('ANALYST');
     expect(screen.queryByRole('link', { name: /Capturas técnicas/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Auditoría/ })).not.toBeInTheDocument();
+  });
+
+  it('cada rol ve su menú en grupos con su nombre (Avance 33)', () => {
+    as('ANALYST');
+    const analysis = screen.getByRole('group', { name: 'Análisis' });
+    expect(within(analysis).getByRole('link', { name: /Anomalías/ })).toHaveAttribute('href', '/anomalies');
+    expect(screen.getByRole('group', { name: 'Monitoreo' })).toBeInTheDocument();
+    cleanup();
+    as('ADMIN');
+    const management = screen.getByRole('group', { name: 'Gestión' });
+    expect(within(management).getByRole('link', { name: /Usuarios/ })).toHaveAttribute('href', '/users');
+    expect(screen.getByText('Administrador')).toBeInTheDocument();
   });
 });
 

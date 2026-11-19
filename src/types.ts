@@ -1,8 +1,13 @@
-/** ADMIN, ANALYST and VIEWER are the team; USER is a self-registered end user. */
-export type StaffRole = 'ADMIN' | 'ANALYST' | 'VIEWER';
+/**
+ * ADMIN (manages the site) and ANALYST (watches and analyses) are the team; USER is a self-registered end user. The
+ * read-only VIEWER role was removed in Avance 33.
+ */
+export type StaffRole = 'ADMIN' | 'ANALYST';
 export type Role = StaffRole | 'USER';
 
-export const isStaff = (role: Role): role is StaffRole => role !== 'USER';
+export const isStaff = (role: Role): role is StaffRole => role === 'ADMIN' || role === 'ANALYST';
+/** A role this page knows; a session that comes with another one (a removed role) is closed. */
+export const isKnownRole = (role: string): role is Role => role === 'USER' || isStaff(role as Role);
 export type NetworkStatus = 'NORMAL' | 'WARNING' | 'CRITICAL';
 /** AGENT: the network's sensor (the WiFiSense agent installed there), the real source. The rest are demo or planned. */
 export type DataSourceType = 'AGENT' | 'SIMULATION' | 'ROUTER_API' | 'SNMP' | 'SYSTEM' | 'TRAFFIC_CAPTURE';
