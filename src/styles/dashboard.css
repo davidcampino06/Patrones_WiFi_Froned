@@ -32,6 +32,25 @@
 .dash__pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .dash__card > .dash__pair, .dash__card > .tiles:only-of-type { margin-block: auto; }
 .dash__lists { margin-top: 20px; }
+/* Panels of each role (Avance 33) */
+.dash__analyze { display: grid; gap: 10px; padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--line-soft); }
+.dash__analyze .button { justify-self: start; display: inline-flex; align-items: center; gap: 8px; }
+.dash__verdict { display: flex; align-items: baseline; gap: 10px; margin: 0; font-size: .9rem; }
+.cause-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+.list__actions { display: flex; gap: 14px; margin-top: 4px; }
+.admin-nets { margin: 14px 0 0; }
+.admin-nets li { align-items: center; }
+.admin-nets .list__main { display: grid; gap: 2px; }
+.admin-nets strong { overflow-wrap: anywhere; }
+.admin-nets__state { display: grid; justify-items: end; gap: 4px; }
+.admin-nets .badge, .admin-nets .tag { white-space: nowrap; }
+.admin-accounts { margin: 12px 0 6px; }
+.admin-accounts .list__main { overflow-wrap: anywhere; }
+.facts { display: grid; gap: 10px; margin: 0; }
+.facts > div { display: grid; gap: 2px; padding-bottom: 10px; border-bottom: 1px solid var(--line-soft); }
+.facts > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.facts dt { font-size: .78rem; color: var(--muted); }
+.facts dd { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
 
 /* Older overview block (reports): health bar and big figures */
 .overview {
