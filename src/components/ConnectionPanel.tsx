@@ -6,7 +6,7 @@ import { gradeStatus, metricOf, metricStatus, metricWord } from '../quality';
 import { api } from '../services/api';
 import { pingOnce } from '../services/livePing';
 import { runSpeedTest, type SpeedTestPhase } from '../services/speedTest';
-import type { ConnectionTest, HomeNetwork, LivePoint, LiveView } from '../types';
+import type { ConnectionTest, HomeNetwork, LivePoint, LiveState, LiveView } from '../types';
 import { Gauge } from './Gauge';
 import { Icon } from './Icon';
 
@@ -23,8 +23,6 @@ const PHASE_TEXT: Record<Phase, string> = {
 export const LIVE_TICK_MS = 1000;
 /** Round trips the live latency and jitter are computed from (the last 8 seconds). */
 export const LIVE_WINDOW = 8;
-/** It stops by itself after 10 minutes, so a forgotten tab does not keep measuring all day. */
-export const LIVE_LIMIT_MS = 10 * 60 * 1000;
 const USAGE_POLL_MS = 2000;
 const MAX_ERRORS = 3;
 
@@ -36,8 +34,9 @@ type Usage = (after: number) => Promise<LiveView>;
  * Avance 32: «Probar mi conexión» measures everything once (speed included) and then keeps going: every second a
  * tiny ping measures the latency and the jitter again, and the three gauges move with them. The quality of each
  * second joins that latency and jitter with the speed of the test (see liveQuality.ts). With the agent installed,
- * the speed card also shows what this computer downloads and uploads at this moment. It stops with «Detener», after
- * 10 minutes, or while the tab is hidden.
+ * the speed card also shows what this computer downloads and uploads at this moment. It goes on until the user
+ * presses «Detener», leaves the screen or signs out (Avance 35: before, it stopped after 10 minutes); while the tab is
+ * hidden it pauses and spends nothing. The live quality uses the test just made, even when the AI did not grade it.
  */
 export function ConnectionPanel({ network, onTested, usage }: {
   network: HomeNetwork; onTested?: (test: ConnectionTest) => void;
@@ -50,11 +49,16 @@ export function ConnectionPanel({ network, onTested, usage }: {
   const [watching, setWatching] = useState(false);
   const [reading, setReading] = useState<LiveReading | null>(null);
   const [now, setNow] = useState<LivePoint | null>(null);
+  const [agentState, setAgentState] = useState<LiveState | null>(null);
   const [stopped, setStopped] = useState<string | null>(null);
   const latest = history.data?.[0] ?? null;
   const quality = latest?.quality ?? null;
   const latestRef = useRef(latest);
   latestRef.current = latest;
+  /** The test just made: the live quality uses it at once, without waiting for the history to reload. */
+  const testedRef = useRef<ConnectionTest | null>(null);
+  const contractedRef = useRef(network.contractedMbps);
+  contractedRef.current = network.contractedMbps;
   const usageRef = useRef(usage);
   usageRef.current = usage;
 
@@ -65,7 +69,6 @@ export function ConnectionPanel({ network, onTested, usage }: {
     let errors = 0;
     let seq = 0;
     const rtts: number[] = [];
-    const startedAt = Date.now();
 
     function stop(why: string) {
       active = false;
@@ -76,11 +79,7 @@ export function ConnectionPanel({ network, onTested, usage }: {
     }
 
     async function ping() {
-      if (!active || busy || document.hidden) return;
-      if (Date.now() - startedAt >= LIVE_LIMIT_MS) {
-        stop('La medición en vivo se detuvo sola después de 10 minutos.');
-        return;
-      }
+      if (!active || busy || document.hidden) return;  // a hidden tab pauses: nothing is measured nor spent
       busy = true;
       try {
         const rtt = await pingOnce();
@@ -88,7 +87,9 @@ export function ConnectionPanel({ network, onTested, usage }: {
         errors = 0;
         rtts.push(rtt);
         if (rtts.length > LIVE_WINDOW) rtts.shift();
-        if (rtts.length >= 2) setReading(liveReading(rtts, latestRef.current));
+        if (rtts.length >= 2) {
+          setReading(liveReading(rtts, testedRef.current ?? latestRef.current, contractedRef.current));
+        }
       } catch {
         if (!active) return;
         errors += 1;
@@ -105,6 +106,7 @@ export function ConnectionPanel({ network, onTested, usage }: {
         const view = await load(seq);
         if (!active) return;
         seq = view.lastSeq;
+        setAgentState(view.state);
         const point = view.state === 'LIVE' ? view.points[view.points.length - 1] : undefined;
         if (point) setNow(point);
       } catch {
@@ -132,9 +134,11 @@ export function ConnectionPanel({ network, onTested, usage }: {
       setPhase('grading');
       const saved = await api.saveMyTest(network.id, measured);
       onTested?.(saved);
+      testedRef.current = saved;
       history.reload();
       setReading(null);
       setNow(null);
+      setAgentState(null);
       setWatching(true);
     } catch (e) {
       setError(errorMessage(e));
@@ -179,7 +183,11 @@ export function ConnectionPanel({ network, onTested, usage }: {
         )}
         {error && <p className="notice notice--error" role="alert">{error}</p>}
         {latest && !quality && (
-          <p className="notice">El servicio de análisis no estaba disponible: guardamos tus mediciones, pero sin calificación.</p>
+          <p className="notice">
+            {watching
+              ? 'La IA no respondió a tiempo: la calidad en vivo se calcula aquí con sus mismas reglas. Vuelve a probar para ver para qué alcanza y los consejos.'
+              : 'El servicio de análisis no estaba disponible: guardamos tus mediciones, pero sin calificación.'}
+          </p>
         )}
         <p className="dash__foot">
           <Icon name="clock" size={16} /> {latest ? `Última prueba: ${formatDateTime(latest.createdAt)}` : 'Aún no has probado esta red.'}
@@ -201,6 +209,12 @@ export function ConnectionPanel({ network, onTested, usage }: {
       <section className="dash__card" aria-labelledby="speed-title">
         <h2 className="dash__title" id="speed-title"><Icon name="arrowDown" size={18} /> Velocidad</h2>
         <Speed test={latest} contracted={network.contractedMbps} now={watching ? now : null} />
+        {watching && usage && !now && agentState === 'WAITING' && (
+          <p className="tile__note dash__usage">
+            <span className="agent__pulse" aria-hidden="true" /> Avisando al agente para ver lo que usa este computador
+            ahora: tarda hasta 30 segundos.
+          </p>
+        )}
       </section>
 
       <section className="dash__card" aria-labelledby="uses-title">

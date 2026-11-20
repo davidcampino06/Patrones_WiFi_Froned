@@ -62,13 +62,17 @@ protocolo (UDP, TCP, ICMP…) se muestra con los mismos medidores circulares, de
   vez la latencia y el jitter, y los tres medidores se mueven. La calidad de cada segundo junta esa latencia y ese
   jitter con la velocidad de la prueba (medirla cada segundo bajaría megas cada vez), con las mismas reglas de la IA
   (`src/liveQuality.ts`, igual que `app/quality.py`). Con el agente, la tarjeta de velocidad dice también lo que este
-  computador baja y sube en ese momento. Se detiene con «Detener», a los 10 minutos o con la pestaña oculta.
+  computador baja y sube en ese momento. Desde el Avance 35 sigue hasta que la persona pulsa «Detener», sale de la
+  pantalla o cierra sesión (antes se detenía a los 10 minutos); con la pestaña oculta se pausa y no gasta nada. La
+  calidad en vivo usa la prueba recién hecha aunque la IA no la haya calificado (por ejemplo, si estaba dormida en
+  Railway): entonces puntúa la velocidad con las mismas curvas de `app/quality.py`. Mientras se avisa al agente dice
+  que lo que usa el computador tarda hasta 30 segundos en aparecer.
 - **En vivo** (`LivePanel`, Avance 26; en el panel del sensor; en Mi Wi-Fi quedó dentro de «Probar mi conexión»): con **«Ver en vivo»**, cada 2 segundos lo
   que el computador del agente baja y sube en ese momento, la latencia hasta el router y hasta internet y la señal, con
   dos gráficas de los últimos 5 minutos y qué significa el último minuto (por ejemplo, si la demora empieza antes o
   después del router). Es el uso de ese momento, no la capacidad (eso lo mide «Probar mi conexión»), y no gasta datos
-  de prueba. Mientras está abierto pregunta cada 2 s; con la pestaña oculta no pregunta y a los 10 minutos se pausa
-  sola, así el agente deja de medir cuando nadie mira. Necesita el agente 2.1.0.
+  de prueba. Mientras está abierto pregunta cada 2 s, hasta «Detener», salir de la pantalla o cerrar sesión; con la
+  pestaña oculta no pregunta, así el agente deja de medir cuando nadie mira. Necesita el agente 2.1.0.
 - **Instalar el agente:** «Instalar el agente» pide un código de 8 caracteres (15 min, un uso) y ofrece el instalador
   `WiFiSenseAgente.exe` (versión `agente` del repositorio de IA). Mientras el código está en pantalla la página
   revisa cada 10 s, así que el primer reporte aparece solo. Es la única forma de instalarlo que ofrece la página
@@ -257,7 +261,7 @@ uno ve su propio panel y un menú ordenado por su trabajo (`src/teamMenu.ts`):
 npm install
 cp .env.example .env        # VITE_API_URL=http://localhost:8080
 npm run dev                 # http://localhost:5173
-npm test                    # 318 pruebas
+npm test                    # 321 pruebas
 npm run build               # tipos + build de producción en dist/
 ```
 

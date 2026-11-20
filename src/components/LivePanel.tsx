@@ -6,8 +6,6 @@ import type { LivePoint, LiveState, LiveView } from '../types';
 import { Icon } from './Icon';
 
 export const LIVE_POLL_MS = 2000;
-/** «En vivo» pauses by itself after 10 minutes so an open tab does not keep the agent measuring all day. */
-export const LIVE_MAX_MS = 10 * 60 * 1000;
 const MAX_POINTS = 150;  // 5 minutes, like the server
 const MAX_ERRORS = 3;
 
@@ -35,11 +33,12 @@ type Load = (after: number) => Promise<LiveView>;
  * «En vivo» (Avance 26): while it is on, the page asks every 2 seconds and the agent of the network measures every 2
  * seconds what its computer downloads and uploads at that moment, the latency to the router and to internet and the
  * Wi-Fi signal. It is the usage of this moment, not the capacity of the connection (that is «Probar mi conexión»),
- * and it spends no test data: the agent reads the counters of the network card.
+ * and it spends no test data: the agent reads the counters of the network card. It goes on until «Detener», leaving
+ * the screen or signing out (Avance 35: before, it paused after 10 minutes); a hidden tab asks nothing, so the server
+ * soon tells the agent that nobody is watching.
  */
 export function LivePanel({ load, team = false }: { load: Load; team?: boolean }) {
   const [running, setRunning] = useState(false);
-  const [paused, setPaused] = useState(false);
   const [view, setView] = useState<LiveView | null>(null);
   const [points, setPoints] = useState<LivePoint[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +52,6 @@ export function LivePanel({ load, team = false }: { load: Load; team?: boolean }
     let busy = false;
     let errors = 0;
     let timer: number | undefined;
-    const startedAt = Date.now();
 
     /** Stops asking at once (the effect ends on the next render, which may come later). */
     function finish() {
@@ -64,11 +62,6 @@ export function LivePanel({ load, team = false }: { load: Load; team?: boolean }
 
     async function tick() {
       if (!active || busy || document.hidden) return;  // a hidden tab does not keep the agent measuring
-      if (Date.now() - startedAt >= LIVE_MAX_MS) {
-        finish();
-        setPaused(true);
-        return;
-      }
       busy = true;
       try {
         const next = await loadRef.current(lastSeq.current);
@@ -106,7 +99,6 @@ export function LivePanel({ load, team = false }: { load: Load; team?: boolean }
     setPoints([]);
     setView(null);
     setError(null);
-    setPaused(false);
     setRunning(true);
   }
 
@@ -133,13 +125,8 @@ export function LivePanel({ load, team = false }: { load: Load; team?: boolean }
             subiendo en ese momento, la latencia hasta el router y hasta internet y la señal del Wi-Fi. No gasta datos
             de prueba: el agente lee los contadores de la tarjeta de red.
           </p>
-          {paused && (
-            <p className="notice" role="status">
-              «En vivo» se pausó después de 10 minutos para no dejar al agente midiendo sin que nadie mire.
-            </p>
-          )}
           <button className="button" onClick={start}>
-            <Icon name="play" size={16} /> {paused ? 'Seguir en vivo' : 'Ver en vivo'}
+            <Icon name="play" size={16} /> Ver en vivo
           </button>
         </div>
       )}
