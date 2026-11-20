@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FunctionGuide } from '../src/components/FunctionGuide';
-import { LIVE_MAX_MS, LIVE_POLL_MS, LivePanel } from '../src/components/LivePanel';
+import { LIVE_POLL_MS, LivePanel } from '../src/components/LivePanel';
 import { ApiError } from '../src/services/apiClient';
 import type { LivePoint, LiveSummary, LiveView } from '../src/types';
 
@@ -105,19 +105,18 @@ describe('En vivo', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/versión 2.1.0 o más nueva/);
   });
 
-  it('se pausa sola a los 10 minutos para que el agente no mida sin que nadie mire', async () => {
+  it('sigue en vivo después de 10 minutos, hasta que la persona lo detiene', async () => {
     const load = vi.fn().mockResolvedValue(view({ state: 'LIVE' }));
     render(<LivePanel load={load} />);
     fireEvent.click(screen.getByRole('button', { name: /Ver en vivo/ }));
     await settle();
 
-    await wait(LIVE_MAX_MS + LIVE_POLL_MS);
+    await wait(30 * 60 * 1000);
     const calls = load.mock.calls.length;
-    await wait(10 * LIVE_POLL_MS);
+    await wait(5 * LIVE_POLL_MS);
 
-    expect(load.mock.calls.length).toBe(calls);
-    expect(screen.getByText(/se pausó después de 10 minutos/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Seguir en vivo/ })).toBeInTheDocument();
+    expect(load.mock.calls.length).toBe(calls + 5);
+    expect(screen.getByRole('button', { name: 'Detener' })).toBeInTheDocument();
   });
 
   it('con la pestaña oculta no pregunta, y así el agente se detiene solo', async () => {
