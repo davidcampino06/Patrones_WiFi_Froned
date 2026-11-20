@@ -13,6 +13,10 @@ type Curve = [number, number][];
 /** (value, score) breakpoints of app/quality.py. */
 export const LATENCY_CURVE: Curve = [[20, 100], [50, 85], [100, 60], [200, 30], [400, 0]];
 export const JITTER_CURVE: Curve = [[5, 100], [15, 80], [30, 55], [60, 25], [100, 0]];
+/** Used only when the AI did not grade the test (it was asleep or down): the same curves as app/quality.py. */
+export const DOWNLOAD_CURVE: Curve = [[1, 5], [5, 30], [10, 50], [25, 75], [50, 90], [100, 100]];
+export const DOWNLOAD_RATIO_CURVE: Curve = [[0.1, 10], [0.3, 40], [0.5, 65], [0.7, 85], [0.9, 100]];
+export const UPLOAD_CURVE: Curve = [[0.5, 5], [2, 30], [5, 50], [10, 70], [20, 85], [50, 100]];
 const WEIGHTS: Record<string, number> = { latency: 0.25, jitter: 0.15, download: 0.25, upload: 0.1 };
 /** One very bad metric keeps the overall score at most this much above it. */
 const BOTTLENECK_MARGIN = 30;
@@ -58,22 +62,38 @@ export interface LiveReading {
   jitterMs: number;
   latency: { score: number; status: MetricStatus };
   jitter: { score: number; status: MetricStatus };
-  /** Null until there is a graded test: without the speed, the overall quality cannot be computed honestly. */
+  /** Null until there is a test: without the speed, the overall quality cannot be computed honestly. */
   quality: { score: number; grade: QualityGrade; gradeLabel: string } | null;
 }
 
-/** The reading of this second from the last round trips and the last graded test. */
-export function liveReading(rtts: number[], test: ConnectionTest | null): LiveReading {
+/**
+ * Score of the speeds of the test: the AI's own scores when it graded the test; otherwise (the AI was asleep or down
+ * when the test was saved) the same curves the AI uses, so the live quality does not depend on the AI answering.
+ */
+function speedScores(test: ConnectionTest | null, contractedMbps: number | null): Record<string, number> {
+  const scores: Record<string, number> = {};
+  for (const metric of ['download', 'upload']) {
+    const fromTest = test?.quality?.metrics.find((m) => m.metric === metric);
+    if (fromTest) scores[metric] = fromTest.score;
+  }
+  if (test && !test.quality) {
+    scores.download = contractedMbps
+      ? curveScore(DOWNLOAD_RATIO_CURVE, test.downloadMbps / contractedMbps)
+      : curveScore(DOWNLOAD_CURVE, test.downloadMbps);
+    scores.upload = curveScore(UPLOAD_CURVE, test.uploadMbps);
+  }
+  return scores;
+}
+
+/** The reading of this second from the last round trips and the last test. */
+export function liveReading(rtts: number[], test: ConnectionTest | null, contractedMbps: number | null = null): LiveReading {
   const latencyMs = middle(rtts);
   const jitterMs = spread(rtts);
   const scores: Record<string, number> = {
     latency: curveScore(LATENCY_CURVE, latencyMs),
     jitter: curveScore(JITTER_CURVE, jitterMs),
+    ...speedScores(test, contractedMbps),
   };
-  for (const metric of ['download', 'upload']) {
-    const fromTest = test?.quality?.metrics.find((m) => m.metric === metric);
-    if (fromTest) scores[metric] = fromTest.score;
-  }
   let quality: LiveReading['quality'] = null;
   if (scores.download !== undefined) {
     const names = Object.keys(scores);

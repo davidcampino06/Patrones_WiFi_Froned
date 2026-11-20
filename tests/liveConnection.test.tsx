@@ -1,6 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ConnectionPanel, LIVE_LIMIT_MS, LIVE_TICK_MS } from '../src/components/ConnectionPanel';
+import { ConnectionPanel, LIVE_TICK_MS } from '../src/components/ConnectionPanel';
 import { curveScore, JITTER_CURVE, LATENCY_CURVE, liveReading, middle, spread } from '../src/liveQuality';
 import { api } from '../src/services/api';
 import { pingOnce } from '../src/services/livePing';
@@ -41,10 +41,11 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 async function testOnce(usage?: (after: number) => Promise<LiveView>) {
-  render(<ConnectionPanel network={casa} usage={usage} />);
+  const view = render(<ConnectionPanel network={casa} usage={usage} />);
   await tick(0);
   await act(async () => { screen.getByRole('button', { name: /Probar mi conexión/ }).click(); });
   await tick(0);
+  return view;
 }
 
 describe('Probar mi conexión sigue midiendo cada segundo', () => {
@@ -78,14 +79,62 @@ describe('Probar mi conexión sigue midiendo cada segundo', () => {
     expect(screen.getByRole('img', { name: 'Calidad de 0 a 100: 21, Mala' })).toBeInTheDocument();
   });
 
-  it('stops by itself after 10 minutes and says so', async () => {
+  it('keeps measuring after 10 minutes, until the person stops it or leaves the screen', async () => {
     answers(40);
+    const { unmount } = await testOnce();
+
+    await tick(30 * 60 * 1000);
+    const calls = vi.mocked(pingOnce).mock.calls.length;
+    await tick(LIVE_TICK_MS * 3);
+
+    expect(pingOnce).toHaveBeenCalledTimes(calls + 3);
+    expect(screen.getByRole('status')).toHaveTextContent('se actualizan cada segundo');
+    expect(screen.getByRole('button', { name: 'Detener' })).toBeInTheDocument();
+
+    unmount();  // leaving the screen or signing out
+    await tick(LIVE_TICK_MS * 3);
+    expect(pingOnce).toHaveBeenCalledTimes(calls + 3);
+  });
+
+  it('the big gauge moves live from the first test even when the AI did not grade it (asleep or down)', async () => {
+    const ungraded = { ...graded, id: 8, quality: null, qualityScore: null, qualityGrade: null } as ConnectionTest;
+    vi.mocked(api.myTests).mockReset().mockResolvedValueOnce([]).mockResolvedValue([ungraded]);
+    vi.mocked(api.saveMyTest).mockReset().mockResolvedValue(ungraded);
+    answers(40, 42, 41);
     await testOnce();
 
-    await tick(LIVE_LIMIT_MS + LIVE_TICK_MS);
+    await tick();
+    await tick();
 
-    expect(screen.getByRole('status')).toHaveTextContent('se detuvo sola después de 10 minutos');
-    expect(screen.queryByRole('button', { name: 'Detener' })).not.toBeInTheDocument();
+    // download 3.3 Mbps and upload 14.7 Mbps scored with the AI's own curves: the quality of this second is there
+    expect(screen.getByRole('img', { name: /^Calidad de 0 a 100: \d+, (Mala|Regular) · en vivo$/ })).toBeInTheDocument();
+    expect(screen.getByText(/La IA no respondió a tiempo/)).toBeInTheDocument();
+  });
+
+  it('uses the test just made at once, before the history reloads', async () => {
+    let reload: (value: ConnectionTest[]) => void = () => undefined;
+    vi.mocked(api.myTests).mockReset().mockResolvedValueOnce([])
+      .mockImplementation(() => new Promise((resolve) => { reload = resolve; }));
+    answers(40, 42, 41);
+    await testOnce();
+
+    await tick();
+    await tick();
+
+    expect(screen.getByRole('img', { name: /^Calidad de 0 a 100: \d+, Regular · en vivo$/ })).toBeInTheDocument();
+    reload([graded]);
+  });
+
+  it('while the agent is being told, it says the usage of this computer takes up to 30 seconds', async () => {
+    answers(40, 41);
+    const usage = vi.fn(async (): Promise<LiveView> => ({
+      state: 'WAITING', watchingSince: null, lastSampleAt: null, lastSeq: 0, points: [],
+      summary: {} as LiveView['summary'],
+    }));
+    await testOnce(usage);
+    await tick();
+
+    expect(screen.getByText(/Avisando al agente para ver lo que usa este computador/)).toBeInTheDocument();
   });
 
   it('with the agent, the speed card also shows what this computer uses at this moment', async () => {
